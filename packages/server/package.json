@@ -1,0 +1,19 @@
+{
+  "name": "metroclavier-server",
+  "version": "0.1.0",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "prettier": "^3.9.6"
+  },
+  "private": true,
+  "scripts": {
+    "dev": "bun --hot src/index.ts",
+    "build": "bun build ./src/index.html --outdir=dist --sourcemap --target=browser --minify --define:process.env.NODE_ENV='\"production\"' --env='BUN_PUBLIC_*'",
+    "start": "NODE_ENV=production bun src/index.ts",
+    "generate-playable-trips": "bun scripts/generate-playable-trips.ts"
+  },
+  "type": "module",
+  "main": "src/index.ts"
+}

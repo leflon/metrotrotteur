@@ -1,21 +1,9 @@
-# bun-react-template
+## Data
 
-To install dependencies:
+### GTFS
 
-```bash
-bun install
-```
+Download the GTFS dataset archive from Ile-de-France Mobilités' PRIM.
 
-To start a development server:
+### Map
 
-```bash
-bun dev
-```
-
-To run for production:
-
-```bash
-bun start
-```
-
-This project was created using `bun init` in bun v1.3.14. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+Get it using Metrodle's system.
