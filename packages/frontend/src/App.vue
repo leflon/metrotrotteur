@@ -33,6 +33,7 @@ const startGame = (route: string, trip: string) => {
 const endGame = () => {
   appState.value = 'menu';
   gameState.value.currentStopIndex = -1;
+  gameParameters.value.stops = [];
 }
 
 const onCorrect = () => {
@@ -55,11 +56,11 @@ onMounted(async () => {
       :focusedStopIndex="gameState.currentStopIndex"
       :stopsColor="gameParameters.route ? PLAYABLE_TRIPS[gameParameters.route].routeColor : '#000'"
      />
-    <game-menu 
+      <game-menu 
       v-if="appState === 'menu'" 
       :trips="PLAYABLE_TRIPS"
       @play="(route, trip) => startGame(route, trip)"
-    ></game-menu>
+    ></game-menu>  
     <game-input
       v-if="appState === 'playing'"
       :word='currentStopName'
@@ -70,7 +71,11 @@ onMounted(async () => {
     Chargement des ressources...
   </div>
 </template>
-<style scoped>
+<style>
+html, body, #app {
+  margin: 0;
+  height: 100%;
+}
 .loading {
   position: fixed;
   width: 100%;
