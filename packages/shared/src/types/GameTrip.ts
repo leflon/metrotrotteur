@@ -1,5 +1,5 @@
-import { GameRoute } from "./GameRoute";
-import { GameStop } from "./GameStop";
+import { type GameRoute } from "./GameRoute";
+import { type GameStop } from "./GameStop";
 
 export type GameTrip = {
   id: string;
