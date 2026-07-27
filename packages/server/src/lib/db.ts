@@ -46,9 +46,20 @@ console.timeEnd("Trips");
 console.time("Stops");
 
 const stopsQuery = db.query(`
-	SELECT st.stop_sequence, COALESCE(s.parent_station, st.stop_id) as station_id, s.stop_name, s.stop_lon, s.stop_lat FROM StopTimes st 
-	JOIN Stops s ON s.stop_id = st.stop_id
-	WHERE trip_id = ?
+SELECT st.stop_sequence,
+       COALESCE(p.stop_id,
+       st.stop_id) AS station_id,
+       s.stop_name,
+       COALESCE(p.stop_lon,
+       s.stop_lon) AS stop_lon,
+       COALESCE(p.stop_lat,
+       s.stop_lat) AS stop_lat
+FROM StopTimes st
+JOIN Stops s
+  ON s.stop_id = st.stop_id
+JOIN Stops p
+  ON s.parent_station = p.stop_id
+WHERE trip_id = ?
 `);
 
 const transfersQuery = db.query(`
@@ -75,8 +86,6 @@ for (const route of Object.values(GAME_ROUTES)) {
       const cur: GameTransfer[] = [];
       for (let i = 0; i < splitTrips.length; i++) {
         const r = splitRoutes[i]!;
-        if (r === route.id) continue;
-
         const transferRoute = structuredClone(GAME_ROUTES[r]) as Partial<GameRoute>;
         delete transferRoute.trips;
         cur.push({
@@ -92,7 +101,7 @@ for (const route of Object.values(GAME_ROUTES)) {
       destination: trip.destination,
       route: routeWithoutTrips as GameRoute,
       stops: rawStops.map((stop) => ({
-        id: stop.stop_id,
+        id: stop.station_id,
         name: stop.stop_name,
         longitude: parseFloat(stop.stop_lon),
         latitude: parseFloat(stop.stop_lat),
