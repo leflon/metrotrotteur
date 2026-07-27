@@ -10,8 +10,16 @@ export type RawPlayableTrip = {
 
 export type RawTripStops = {
   stop_sequence: string;
-  stop_id: string;
+  station_id: string;
   stop_name: string;
   stop_lon: string;
   stop_lat: string;
+}
+
+export type RawTransfer = {
+  station_id: string;
+  stop_name: string;
+  trips: string;
+  destinations: string;
+  routes: string;
 }

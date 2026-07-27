@@ -25,6 +25,7 @@ onMounted(async () => {
     style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
     zoom: DEFAULT_ZOOM,
     center: DEFAULT_CENTER,
+    interactive: false
   });
 
   const data = await (
@@ -49,8 +50,9 @@ onMounted(async () => {
 watch(
   () => props.trip?.stops,
   (stops) => {
-    if (!map || !stops) return;
-    const trip = props.trip!;
+    if (!map) return;
+    const trip = props.trip;
+    stops = stops ?? [];
     const geojson = {
       type: "FeatureCollection",
       features: stops.map((stop, i) => ({
@@ -72,9 +74,9 @@ watch(
         source: "stops-geojson",
         paint: {
           "circle-radius": 4,
-          "circle-color": "#" + trip.route.color,
+          "circle-color": "#" + trip?.route.color,
           "circle-stroke-width": 4,
-          "circle-stroke-color": "#" + trip.route.color,
+          "circle-stroke-color": "#" + trip?.route.color,
         },
       });
     }
@@ -84,7 +86,7 @@ watch(
   () => props.focusedStopIndex,
   (index) => {
     const trip = props.trip;
-    if (!map || !trip) return;
+    if (!map) return;
     const easing = (t: number) => {
       return t < 0.5
         ? (1 - Math.sqrt(1 - Math.pow(2 * t, 2))) / 2
@@ -99,8 +101,8 @@ watch(
         easing,
       });
     }
-    const stop = trip.stops[index];
-    if (!stop) return;
+    const stop = trip?.stops[index];
+    if (!stop || !trip) return;
     map.flyTo({
       center: [stop.longitude, stop.latitude],
       zoom: 14,

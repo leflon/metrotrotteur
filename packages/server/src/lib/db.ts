@@ -1,5 +1,5 @@
-import type { RawPlayableTrip, RawTripStops } from "@/types/Database";
-import type { GameRoute, GameRoutes, GameTrip } from "@metroclavier/shared";
+import type { RawPlayableTrip, RawTransfer, RawTripStops } from "@/types/Database";
+import type { GameRoute, GameRoutes, GameTransfer, GameTrip } from "@metroclavier/shared";
 import { Database } from "bun:sqlite";
 
 
@@ -45,10 +45,16 @@ console.timeEnd("Trips");
 //#region Eager Loading Trips
 console.time("Stops");
 
-const tripStopsQuery = db.query(`
-	SELECT st.stop_sequence, st.stop_id, s.stop_name, s.stop_lon, s.stop_lat FROM StopTimes st 
+const stopsQuery = db.query(`
+	SELECT st.stop_sequence, COALESCE(s.parent_station, st.stop_id) as station_id, s.stop_name, s.stop_lon, s.stop_lat FROM StopTimes st 
 	JOIN Stops s ON s.stop_id = st.stop_id
 	WHERE trip_id = ?
+`);
+
+const transfersQuery = db.query(`
+  SELECT *
+  FROM StopTransfers
+  WHERE trips LIKE ?
 `);
 
 export const GAME_TRIPS: Record<string, GameTrip> = {};
@@ -57,18 +63,41 @@ for (const route of Object.values(GAME_ROUTES)) {
   const routeWithoutTrips: Partial<GameRoute> = structuredClone(route);
   delete routeWithoutTrips.trips;
   for (const trip of route.trips) {
-    const data = tripStopsQuery.all(trip.id) as RawTripStops[];
+    const rawStops = stopsQuery.all(trip.id) as RawTripStops[];
+    const rawTransfers = transfersQuery.all(`%${trip.id}%`) as RawTransfer[];
+    const transfers = rawStops.map(stop => {
+      const transferRow = rawTransfers.find(t => t.station_id === stop.station_id);
+      if (!transferRow) return [];
+      const splitTrips = transferRow.trips.split(',').map(t => t.trim());
+      const splitDestinations = transferRow.destinations.split(',').map(t => t.trim());
+      const splitRoutes = transferRow.routes.split(',').map(t => t.trim());
+
+      const cur: GameTransfer[] = [];
+      for (let i = 0; i < splitTrips.length; i++) {
+        const r = splitRoutes[i]!;
+        if (r === route.id) continue;
+
+        const transferRoute = structuredClone(GAME_ROUTES[r]) as Partial<GameRoute>;
+        delete transferRoute.trips;
+        cur.push({
+          route: transferRoute as GameRoute,
+          trip: splitTrips[i]!,
+          destination: splitDestinations[i]!,
+        });
+      }
+    return cur;
+    });
     const gameTrip: GameTrip = {
       id: trip.id,
       destination: trip.destination,
       route: routeWithoutTrips as GameRoute,
-      stops: data.map((stop) => ({
+      stops: rawStops.map((stop) => ({
         id: stop.stop_id,
         name: stop.stop_name,
         longitude: parseFloat(stop.stop_lon),
         latitude: parseFloat(stop.stop_lat),
       })),
-      transfers: [],
+      transfers
     };
     GAME_TRIPS[trip.id] = gameTrip;
   }

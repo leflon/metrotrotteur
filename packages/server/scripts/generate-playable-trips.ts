@@ -24,8 +24,9 @@ import { Database } from "bun:sqlite";
 
 const db = new Database("data/gtfs.db");
 
-console.log("◆ Dropping previous table ◆");
+console.log("◆ Dropping previous tables ◆");
 db.run("DROP TABLE IF EXISTS PlayableTrips");
+db.run("DROP TABLE IF EXISTS StopTransfers");
 
 console.log("◆ Generating playable trips... ◆");
 db.run(`
@@ -67,6 +68,24 @@ JOIN RoutesReferential rr
 WHERE oo.n = 1
   OR (oo.route_long_name IN ('7', '13') AND oo.n = 2 AND oo.direction_id = 1)
 ORDER BY oo.route_long_name`);
+
+console.log("◆ Generating Stop Transfers ◆");
+db.run(`
+CREATE TABLE StopTransfers AS
+SELECT COALESCE(s.parent_station,
+       s.stop_id) AS station_id,
+       s.stop_name,
+       GROUP_CONCAT(pt.trip_id) AS trips,
+       GROUP_CONCAT(pt.destination) as destinations,
+       GROUP_CONCAT(r.route_id) as routes
+FROM PlayableTrips pt
+JOIN StopTimes st
+  ON st.trip_id = pt.trip_id
+JOIN Stops s
+  ON s.stop_id = st.stop_id
+JOIN Routes r ON r.route_id = pt.route_id
+GROUP BY station_id
+`)
 
 console.log("◆ Done ◆");
 
