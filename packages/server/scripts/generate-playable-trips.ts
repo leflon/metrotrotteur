@@ -53,7 +53,7 @@ FROM (
     FROM Trips t
     JOIN Routes r
       ON t.route_id = r.route_id
-    RIGHT OUTER JOIN StopTimes st
+    JOIN StopTimes st
       ON st.trip_id = t.trip_id
     WHERE route_type = 1
     GROUP BY t.trip_id

@@ -1,11 +1,12 @@
 {
-  "name": "metroclavier-server",
+  "name": "@metroclavier/server",
   "version": "0.1.0",
   "devDependencies": {
     "@types/bun": "latest",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "prettier": "^3.9.6"
+    "prettier": "^3.9.6",
+    "@metroclavier/shared": "workspace:*"
   },
   "private": true,
   "scripts": {

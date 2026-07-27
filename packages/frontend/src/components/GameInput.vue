@@ -1,7 +1,6 @@
 <script setup lang='ts'>
 import { onMounted, ref, watch, useTemplateRef } from 'vue';
 
-
 const props = defineProps<{
   word: string;
 }>();

@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import type { PlayableTrips } from "metroclavier-server";
+import type { GameRoute, GameRoutes } from "@metroclavier/shared";
 import { computed, ref } from "vue";
 
 const props = defineProps<{
-  trips: PlayableTrips;
+  routes: GameRoutes;
 }>();
 
 const emit = defineEmits<{
-  play: [string, string];
+  play: [string];
 }>();
 
 const selectedRoute = ref<string>("");
@@ -19,13 +19,13 @@ const setRoute = (route: string) => {
 };
 
 const routesList = computed(() =>
-  Object.values(props.trips).sort(
-    (a, b) => parseInt(a.routeName) - parseInt(b.routeName),
+  Object.values(props.routes).sort(
+    (a, b) => parseInt(a.name) - parseInt(b.name),
   ),
 );
 
 const tripsList = computed(() =>
-  selectedRoute.value ? props.trips[selectedRoute.value].trips : [],
+  selectedRoute.value ? props.routes[selectedRoute.value]!.trips : [],
 );
 </script>
 
@@ -36,19 +36,19 @@ const tripsList = computed(() =>
       <div
         v-for="route in routesList"
         class="route"
-        :style="{ '--bg': '#' + route.routeColor }"
-        :class="{ selected: selectedRoute === route.routeId }"
-        @click="setRoute(route.routeId)"
+        :style="{ '--bg': '#' + route.color }"
+        :class="{ selected: selectedRoute === route.id }"
+        @click="setRoute(route.id)"
       >
-        <img :src="route.routePicto" :width="24" />
+        <img :src="route.picto" :width="24" />
       </div>
     </div>
     <div class="trips-list">
       <div
         v-for="trip in tripsList"
         class="trip"
-        :class="{ selected: selectedTrip === trip.tripId }"
-        @click="selectedTrip = trip.tripId"
+        :class="{ selected: selectedTrip === trip.id }"
+        @click="selectedTrip = trip.id"
       >
         {{ trip.destination }}
       </div>
@@ -56,7 +56,7 @@ const tripsList = computed(() =>
     <button
       class="play"
       v-if="selectedTrip"
-      @click="emit('play', selectedRoute, selectedTrip)"
+      @click="emit('play', selectedTrip)"
     >
       Jouer
     </button>

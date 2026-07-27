@@ -1,0 +1,6 @@
+{
+	"name": "@metroclavier/shared",
+	"version": "1.0.0",
+	"module": "./src/main.ts",
+	"types": "./src/main.ts"
+}

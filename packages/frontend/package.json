@@ -11,10 +11,9 @@
     "type-check": "vue-tsc --build"
   },
   "dependencies": {
+    "@metroclavier/shared": "workspace:*",
     "maplibre-gl": "^6.0.0",
-    "metroclavier-server": "file:../server",
-    "vue": "^3.5.40",
-    "vue2-leaflet": "^2.7.1"
+    "vue": "^3.5.40"
   },
   "devDependencies": {
     "@tsconfig/node24": "^24.0.4",

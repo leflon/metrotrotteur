@@ -1,50 +1,24 @@
-import { serve, type Server } from "bun";
-import { PLAYABLE_TRIPS } from "./lib/db";
-
-type Handler = (req: Request, server: Server<any>) => Response | Promise<Response>;
-type RouteValue = Handler | Partial<Record<string, Handler>>;
-type Routes = Record<string, RouteValue>;
-
+import { serve } from "bun";
+import { GAME_ROUTES, GAME_TRIPS } from "./lib/db";
 const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "*",
 };
-
-function withCors(routes: Routes): Routes {
-  const wrapped: Routes = {};
-
-  for (const [path, handler] of Object.entries(routes)) {
-    const methods: Partial<Record<string, Handler>> =
-      typeof handler === "function" ? { GET: handler } : handler;
-
-    const wrappedMethods: Partial<Record<string, Handler>> = {
-      OPTIONS: () => new Response(null, { headers: CORS_HEADERS }),
-    };
-
-    for (const [method, fn] of Object.entries(methods)) {
-      if (!fn) continue;
-      wrappedMethods[method] = async (req, server) => {
-        const res = await fn(req, server);
-        for (const [k, v] of Object.entries(CORS_HEADERS)) {
-          res.headers.set(k, v);
-        }
-        return res;
-      };
-    }
-
-    wrapped[path] = wrappedMethods;
+function withCors(res: Response) {
+  const withHeaders = res.clone() as typeof res;
+  for (const [key, value] of Object.entries(CORS_HEADERS)) {
+    withHeaders.headers.set(key, value);
   }
-
-  return wrapped;
+  return withHeaders;
 }
 
 const server = serve({
-  routes: withCors({
-    "/trips": () => Response.json(PLAYABLE_TRIPS),
-    "/map.json": () => new Response(Bun.file("data/map.json")),
-  }),
+  routes: {
+    "/routes": () => withCors(Response.json(GAME_ROUTES)),
+    "/trip/:id": (req) => withCors(Response.json(GAME_TRIPS[req.params.id])),
+    "/map.json": () => withCors(new Response(Bun.file("data/map.json"))),
+  },
 });
 
-
-export type { PlayableTrips } from "./types/PlayableTrips";
+console.log(`-- Server running at ${server.url} --`);

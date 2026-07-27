@@ -1,26 +1,23 @@
 <script setup lang="ts">
-import "leaflet/dist/leaflet.css";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { markRaw, onMounted, ref, shallowRef, watch } from "vue";
-import type { PlayableTrips } from "metroclavier-server/src/types/PlayableTrips";
+import { onMounted, watch } from "vue";
 import {
   GeoJSONSource,
   Map as MapLibre,
   Marker,
   type DataDrivenPropertyValueSpecification,
 } from "maplibre-gl";
+import type { GameTrip } from "@metroclavier/shared";
 
 const DEFAULT_CENTER = [2.333333, 48.859667] as [number, number];
 const DEFAULT_ZOOM = 12;
 
 const props = defineProps<{
-  stops: PlayableTrips[string]["trips"][number]["stops"];
-  stopsColor: string;
+  trip: GameTrip | null;
   focusedStopIndex: number;
 }>();
 
 let map: MapLibre;
-const stopMarkers: Marker[] = [];
 
 onMounted(async () => {
   map = new MapLibre({
@@ -50,16 +47,17 @@ onMounted(async () => {
 });
 
 watch(
-  () => props.stops,
+  () => props.trip?.stops,
   (stops) => {
-    if (!map) return;
+    if (!map || !stops) return;
+    const trip = props.trip!;
     const geojson = {
       type: "FeatureCollection",
       features: stops.map((stop, i) => ({
         type: "Feature",
         geometry: {
           type: "Point",
-          coordinates: [stop.longitude, stop.latitute],
+          coordinates: [stop.longitude, stop.latitude],
         },
         properties: { index: i },
       })),
@@ -74,9 +72,9 @@ watch(
         source: "stops-geojson",
         paint: {
           "circle-radius": 4,
-          "circle-color": "#" + props.stopsColor,
+          "circle-color": "#" + trip.route.color,
           "circle-stroke-width": 4,
-          "circle-stroke-color": "#" + props.stopsColor,
+          "circle-stroke-color": "#" + trip.route.color,
         },
       });
     }
@@ -85,7 +83,8 @@ watch(
 watch(
   () => props.focusedStopIndex,
   (index) => {
-    if (!map) return;
+    const trip = props.trip;
+    if (!map || !trip) return;
     const easing = (t: number) => {
       return t < 0.5
         ? (1 - Math.sqrt(1 - Math.pow(2 * t, 2))) / 2
@@ -100,17 +99,17 @@ watch(
         easing,
       });
     }
-    const stop = props.stops[index];
+    const stop = trip.stops[index];
     if (!stop) return;
     map.flyTo({
-      center: [stop.longitude, stop.latitute],
+      center: [stop.longitude, stop.latitude],
       zoom: 14,
       essential: true,
       duration: 1000,
       easing,
     });
     const _case = ["case", ["==", ["get", "index"], index]];
-    const color = "#" + props.stopsColor;
+    const color = "#" + trip.route.color;
     map.setPaintProperty("stops-layer", "circle-radius", [
       ..._case,
       8,

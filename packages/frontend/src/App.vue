@@ -3,76 +3,79 @@ import { computed, onMounted, ref } from "vue";
 import GameMap from "./components/GameMap.vue";
 import GameMenu from "./components/GameMenu.vue";
 import GameInput from "./components/GameInput.vue";
-import type { PlayableTrips } from "metroclavier-server";
+import {
+  type GameRoutes,
+  type GameRoute,
+  type GameStop,
+  type GameTrip,
+} from "@metroclavier/shared";
 
-const PLAYABLE_TRIPS = ref<PlayableTrips | null>(null);
+const GAME_ROUTES = ref<GameRoutes>({});
 
 const gameParameters = ref({
-  route: "",
-  trip: "",
-  stops: [] as PlayableTrips[string]['trips'][number]['stops']
+  trip: null as GameTrip | null,
 });
+
 const gameState = ref({
-  currentStopIndex: -1
+  currentStopIndex: -1,
 });
 const currentStopName = computed(() => {
   const i = gameState.value.currentStopIndex;
-  if (i === -1 || gameParameters.value.stops.length === 0) return "";
+  if (i === -1 || gameParameters.value.trip?.stops.length === 0) return "";
 
-  return gameParameters.value.stops[i].stopName;
+  return gameParameters.value.trip?.stops[i]!.name ?? '';
 });
-const appState = ref<'menu' | 'playing'>('menu');
+const appState = ref<"menu" | "playing">("menu");
 
-const startGame = (route: string, trip: string) => {
-  gameParameters.value.route = route;
-  gameParameters.value.trip = trip;
-  gameParameters.value.stops = PLAYABLE_TRIPS.value[route].trips.find(t => t.tripId === trip).stops;
+const startGame = async (trip: string) => {
+  const tripData = (await (
+    await fetch(`${import.meta.env.VITE_PUBLIC_API_URL}/trip/${trip}`)
+  ).json()) as GameTrip;
+  gameParameters.value.trip = tripData;
   gameState.value.currentStopIndex = 0;
-  appState.value = 'playing';
-}
+  appState.value = "playing";
+};
 const endGame = () => {
-  appState.value = 'menu';
+  appState.value = "menu";
   gameState.value.currentStopIndex = -1;
-  gameParameters.value.stops = [];
-}
+  gameParameters.value.trip = null;
+};
 
 const onCorrect = () => {
-  if (gameState.value.currentStopIndex === gameParameters.value.stops.length - 1)
+  if (
+    gameState.value.currentStopIndex ===
+    gameParameters.value.trip!.stops.length - 1
+  )
     endGame();
-  else
-    gameState.value.currentStopIndex++;
-}
+  else gameState.value.currentStopIndex++;
+};
 
 onMounted(async () => {
-  const raw = await fetch(`${import.meta.env.VITE_PUBLIC_API_URL}/trips`);
-  PLAYABLE_TRIPS.value = await raw.json() as PlayableTrips
+  const raw = await fetch(`${import.meta.env.VITE_PUBLIC_API_URL}/routes`);
+  GAME_ROUTES.value = (await raw.json()) as GameRoutes;
 });
 </script>
 
 <template>
-  <template v-if="PLAYABLE_TRIPS">
-    <game-map 
-      :stops="gameParameters.stops"
-      :focusedStopIndex="gameState.currentStopIndex"
-      :stopsColor="gameParameters.route ? PLAYABLE_TRIPS[gameParameters.route].routeColor : '#000'"
-     />
-      <game-menu 
-      v-if="appState === 'menu'" 
-      :trips="PLAYABLE_TRIPS"
-      @play="(route, trip) => startGame(route, trip)"
-    ></game-menu>  
+  <template v-if="GAME_ROUTES">
+    <game-map :trip="gameParameters.trip" :focusedStopIndex="gameState.currentStopIndex" />
+    <game-menu
+      v-if="appState === 'menu'"
+      :routes="GAME_ROUTES"
+      @play="(trip) => startGame(trip)"
+    ></game-menu>
     <game-input
       v-if="appState === 'playing'"
-      :word='currentStopName'
+      :word="currentStopName"
       @correct="onCorrect"
-      />
+    />
   </template>
-  <div class="loading" v-else>
-    Chargement des ressources...
-  </div>
+  <div class="loading" v-else>Chargement des ressources...</div>
 </template>
 <style>
-html, body, #app {
+html,
+body,
+#app {
   margin: 0;
   height: 100%;
 }
