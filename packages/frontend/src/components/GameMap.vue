@@ -4,7 +4,6 @@ import { onMounted, watch } from "vue";
 import {
   GeoJSONSource,
   Map as MapLibre,
-  Marker,
   type DataDrivenPropertyValueSpecification,
 } from "maplibre-gl";
 import type { GameTrip } from "@metroclavier/shared";
@@ -13,11 +12,22 @@ const DEFAULT_CENTER = [2.333333, 48.859667] as [number, number];
 const DEFAULT_ZOOM = 12;
 
 const props = defineProps<{
-  trip: GameTrip | null;
+  lines: GeoJSONSource;
+  trip: GameTrip;
   focusedStopIndex: number;
 }>();
 
 let map: MapLibre;
+
+let resolveMapReady: () => void;
+
+const mapReady = new Promise<void>((resolve) => {
+  resolveMapReady = resolve;
+});
+
+async function mapLoaded(): Promise<void> {
+  return mapReady;
+}
 
 onMounted(async () => {
   map = new MapLibre({
@@ -25,32 +35,33 @@ onMounted(async () => {
     style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
     zoom: DEFAULT_ZOOM,
     center: DEFAULT_CENTER,
-    interactive: false
+    interactive: false,
   });
-
-  const data = await (
-    await fetch(`${import.meta.env.VITE_PUBLIC_API_URL}/map.json`)
-  ).json();
-  map.addSource("lines-geojson", {
-    type: "geojson",
-    data,
-  });
-  map.addLayer({
-    id: "lines-layer",
-    type: "line",
-    source: "lines-geojson",
-    paint: {
-      "line-color": ["concat", "#", ["get", "colourweb_hexa"]],
-      "line-width": 2,
-    },
-    filter: ["==", ["get", "mode"], "METRO"],
+  
+  map.on("load", () => {
+    map.addSource("lines-geojson", {
+      type: "geojson",
+      data: props.lines,
+    });
+    map.addLayer({
+      id: "lines-layer",
+      type: "line",
+      source: "lines-geojson",
+      paint: {
+        "line-color": ["concat", "#", ["get", "colourweb_hexa"]],
+        "line-width": 2,
+      },
+      filter: ["==", ["get", "mode"], "METRO"],
+    });
+    resolveMapReady();
   });
 });
 
 watch(
   () => props.trip?.stops,
-  (stops) => {
-    if (!map) return;
+  async (stops) => {
+    await mapLoaded();
+    
     const trip = props.trip;
     stops = stops ?? [];
     const geojson = {
@@ -81,12 +92,15 @@ watch(
       });
     }
   },
+  { immediate: true },
 );
 watch(
   () => props.focusedStopIndex,
-  (index) => {
+  async (index) => {
+    await mapLoaded();
+
     const trip = props.trip;
-    if (!map) return;
+    
     const easing = (t: number) => {
       return t < 0.5
         ? (1 - Math.sqrt(1 - Math.pow(2 * t, 2))) / 2
@@ -127,7 +141,7 @@ watch(
       "black",
       color,
     ] as DataDrivenPropertyValueSpecification<string>);
-  },
+  }, { immediate: true }
 );
 </script>
 
