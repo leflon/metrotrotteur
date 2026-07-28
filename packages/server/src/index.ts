@@ -1,5 +1,6 @@
 import { serve } from "bun";
 import { GAME_ROUTES, GAME_TRIPS } from "./lib/db";
+import { MAP_GEOJSON } from "./lib/map";
 const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
@@ -17,7 +18,7 @@ const server = serve({
   routes: {
     "/routes": () => withCors(Response.json(GAME_ROUTES)),
     "/trip/:id": (req) => withCors(Response.json(GAME_TRIPS[req.params.id])),
-    "/map.json": () => withCors(new Response(Bun.file("data/map.json"))),
+    "/map.json": () => withCors(Response.json(MAP_GEOJSON)),
   },
 });
 

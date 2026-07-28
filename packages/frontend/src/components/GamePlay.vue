@@ -18,7 +18,7 @@ const props = defineProps<{
   // Not reactive. The parent should not be able to alter the current trip,
   // after the gameplay was mounted. The gameplay handles it itself.
   trip: GameTrip
-  lines: GeoJSONSource
+  map: GeoJSONSource
 }>();
 
 const state = ref({
@@ -93,7 +93,7 @@ onMounted(async () => {
 <template>
   <game-map
     :trip="state.trip"
-    :lines="lines"
+    :geojson="map"
     :focusedStopIndex="state.currentStopIndex"
   />
   <game-input

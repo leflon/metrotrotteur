@@ -10,7 +10,7 @@ import { api } from "./lib/api";
 import { GeoJSONSource } from "maplibre-gl";
 
 const GAME_ROUTES = ref<GameRoutes>({});
-const MAP_LINES = ref<GeoJSONSource>({} as GeoJSONSource);
+const GAME_GEOJSON = ref<GeoJSONSource>({} as GeoJSONSource);
 
 const appState = ref<"menu" | "playing">("menu");
 
@@ -32,15 +32,15 @@ onMounted(async () => {
   const routes = await api.get('routes');
   GAME_ROUTES.value = routes as GameRoutes;
 
-  const lines = await api.get('map.json');
-  MAP_LINES.value = lines as GeoJSONSource;
+  const map = await api.get('map.json');
+  GAME_GEOJSON.value = map as GeoJSONSource;
 });
 </script>
 
 <template>
   <template v-if="GAME_ROUTES">
     <game-menu v-if="appState === 'menu'" :routes="GAME_ROUTES" @play="onPlay" />
-    <game-play v-if="appState === 'playing'" :trip='gameParameters.trip!' :lines="MAP_LINES" @end="onEnd" />
+    <game-play v-if="appState === 'playing'" :trip='gameParameters.trip!' :map="GAME_GEOJSON" @end="onEnd" />
   </template>
   <div class="loading" v-else>Chargement des ressources...</div>
 </template>

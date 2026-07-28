@@ -1,6 +1,6 @@
 import type { GameRoute } from "@metroclavier/shared";
 
-export type IDFMGeoJSONFeature = {
+export type GeoJSONRoute = {
     type: 'Feature';
     geometry: {
         type: 'LineString';
@@ -12,5 +12,20 @@ export type IDFMGeoJSONFeature = {
       routeId: string;
       routeName: string;
       routeColor: string;
+    };
+}
+
+export type GeoJSONStop = {
+    type: 'Feature';
+    geometry: {
+        type: 'Point';
+        coordinates: number[];
+    };
+    properties: {
+      id: string;
+      name: string;
+      routeIds: string[];
+      routeColors: string[];
+      trips: string[];
     };
 }
