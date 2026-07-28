@@ -97,7 +97,10 @@ onMounted(async () => {
     :focusedStopIndex="state.currentStopIndex"
   />
   <game-input
-    :word="currentStopName"
+    :previousStop="''"
+    :currentStop="currentStopName"
+    :nextStop="''"
+    :trip="state.trip"
     :transfers="currentTransfers"
     @correct="onCorrect"
     @transfer="onTransfer"
