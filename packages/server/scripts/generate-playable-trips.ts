@@ -76,14 +76,19 @@ SELECT COALESCE(s.parent_station,
        s.stop_id) AS station_id,
        s.stop_name,
        GROUP_CONCAT(pt.trip_id) AS trips,
-       GROUP_CONCAT(pt.destination) as destinations,
-       GROUP_CONCAT(r.route_id) as routes
+       GROUP_CONCAT(pt.destination) AS destinations,
+       GROUP_CONCAT(r.route_id) AS routes,
+       GROUP_CONCAT(COALESCE(s2.parent_station, s2.stop_id)) AS next_stops
 FROM PlayableTrips pt
 JOIN StopTimes st
   ON st.trip_id = pt.trip_id
 JOIN Stops s
   ON s.stop_id = st.stop_id
-JOIN Routes r ON r.route_id = pt.route_id
+JOIN StopTimes st2
+  ON st2.trip_id = st.trip_id AND st2.stop_sequence = st.stop_sequence + 1
+JOIN Stops s2 ON s2.stop_id = st2.stop_id
+JOIN Routes r
+  ON r.route_id = pt.route_id
 GROUP BY station_id
 `)
 

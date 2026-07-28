@@ -25,13 +25,16 @@ const state = ref({
   trip: props.trip,
   currentStopIndex: 0,
   possibleTransfers: [] as GameTransfer[],
+  visitedStops: [] as string[]
 });
 
-const currentStopName = computed(() => {
+const currentStop = computed(() => {
   const i = state.value.currentStopIndex;
-  if (i === -1) return "";
-  return state.value.trip.stops[i]!.name;
+  if (i === -1) return null;
+  return state.value.trip.stops[i];
 });
+
+const currentStopName = computed(() => currentStop.value?.name ?? "");
 
 const currentTransfers = computed<GameTransfer[]>(() => {
   // Don't return any transfer if only the current trip is available.
@@ -45,9 +48,15 @@ const setPossibleTransfers = () => {
   const transfers = trip.transfers[state.value.currentStopIndex];
   if (!transfers) return state.value.possibleTransfers = [];
 
-  // Can go anywhere *Except* the other directions on the same line.
+  console.log(state.value.visitedStops);
+
+  // Can go anywhere *Except* in the reverse destination,
+  // or can't change trip if next stop doesn't change.
   const possible = transfers
-    .filter((t) => t.route.id !== trip.route.id || t.trip === trip.id)
+    .filter((t) => 
+      state.value.visitedStops.at(-1) !== t.nextStop
+      && state.value.trip.stops[state.value.currentStopIndex + 1]?.id !== t.nextStop
+      )
     // Force the current trip at the last position to loop through all other options
     // before falling back on it.
     .sort((a, b) =>
@@ -57,6 +66,7 @@ const setPossibleTransfers = () => {
           ? -1
           : parseInt(a.route.name) - parseInt(b.route.name),
     );
+  console.table(possible);
   state.value.possibleTransfers = possible;
 };
 
@@ -67,6 +77,7 @@ const onCorrect = () => {
   )
     emit('end');
   else {
+    state.value.visitedStops.push(currentStop.value!.id);
     state.value.currentStopIndex++;
     setPossibleTransfers();
   }

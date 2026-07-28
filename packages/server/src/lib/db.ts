@@ -82,6 +82,7 @@ for (const route of Object.values(GAME_ROUTES)) {
       const splitTrips = transferRow.trips.split(',').map(t => t.trim());
       const splitDestinations = transferRow.destinations.split(',').map(t => t.trim());
       const splitRoutes = transferRow.routes.split(',').map(t => t.trim());
+      const splitNextStops = transferRow.next_stops.split(',').map(t => t.trim());
 
       const cur: GameTransfer[] = [];
       for (let i = 0; i < splitTrips.length; i++) {
@@ -92,6 +93,7 @@ for (const route of Object.values(GAME_ROUTES)) {
           route: transferRoute as GameRoute,
           trip: splitTrips[i]!,
           destination: splitDestinations[i]!,
+          nextStop: splitNextStops[i]!,
         });
       }
     return cur;

@@ -22,4 +22,5 @@ export type RawTransfer = {
   trips: string;
   destinations: string;
   routes: string;
+  next_stops: string;
 }
