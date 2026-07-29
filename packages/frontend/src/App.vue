@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import './index.css';
-import { computed, onMounted, ref } from "vue";
+import {
+    type GameRoutes,
+    type GameTrip,
+} from "@metroclavier/shared";
+import { onMounted, ref } from "vue";
 import GameMenu from "./components/GameMenu.vue";
 import GamePlay from "./components/GamePlay.vue";
-import {
-  type GameRoutes,
-  type GameTrip,
-} from "@metroclavier/shared";
+import './index.css';
 import { api } from "./lib/api";
-import { GeoJSONSource } from "maplibre-gl";
 import type { GameParams } from './types/GameParams';
 
 const GAME_ROUTES = ref<GameRoutes>({});
-const GAME_GEOJSON = ref<GeoJSONSource>({} as GeoJSONSource);
+// TODO: get the right type.
+const GAME_GEOJSON = ref<any>({} as any);
 
 const appState = ref<"menu" | "playing">("menu");
 
@@ -37,7 +37,7 @@ onMounted(async () => {
   GAME_ROUTES.value = routes as GameRoutes;
 
   const map = await api.get('map.json');
-  GAME_GEOJSON.value = map as GeoJSONSource;
+  GAME_GEOJSON.value = map as any;
 });
 </script>
 

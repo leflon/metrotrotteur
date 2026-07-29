@@ -1,15 +1,14 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch, type ComputedRef } from "vue";
-import GameMap from "./GameMap.vue";
-import GameInput from "./GameInput.vue";
-import InGameStats from "./InGameStats.vue";
-import EndGameStats from "./EndGameStats.vue";
-import { type GameTrip, type GameTransfer } from "@metroclavier/shared";
 import { api } from "@/lib/api";
-import type { GeoJSONSource } from "maplibre-gl";
-import type { GameStats } from "@/types/GameStats";
-import { angle, calculateSlidingWPM, convertStopsToEasy } from "@/lib/utils";
+import { angle, convertStopsToEasy } from "@/lib/utils";
 import type { GameParams } from "@/types/GameParams";
+import type { GameStats } from "@/types/GameStats";
+import { type GameTransfer, type GameTrip } from "@metroclavier/shared";
+import { computed, onMounted, onUnmounted, ref, watch, type ComputedRef } from "vue";
+import EndGameStats from "./EndGameStats.vue";
+import GameInput from "./GameInput.vue";
+import GameMap from "./GameMap.vue";
+import InGameStats from "./InGameStats.vue";
 
 const emit = defineEmits<{
   end: [];
@@ -19,7 +18,7 @@ const props = defineProps<{
   // Not reactive. The parent should not be able to alter the current trip,
   // after the gameplay was mounted. The gameplay handles it itself.
   trip: GameTrip;
-  map: GeoJSONSource;
+  map: any; // TODO: get the right type
   params: GameParams;
 }>();
 
@@ -182,12 +181,14 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <game-map
-    :trip="state.trip"
-    :geojson="map"
-    :focusedStopIndex="state.currentStopIndex"
-    :angle="trainAngle"
-  />
+  <Suspense>
+    <game-map
+      :trip="state.trip"
+      :geojson="map"
+      :focusedStopIndex="state.currentStopIndex"
+      :angle="trainAngle"
+    />
+  </Suspense>
   <Transition name="slide">
     <div class='exit-indicator' v-if='isExiting'>
       <span class='regular'>Quitter la partie</span>

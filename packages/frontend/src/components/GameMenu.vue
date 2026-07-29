@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { GameParams } from "@/types/GameParams";
-import type { GameRoute, GameRoutes } from "@metroclavier/shared";
+import type { GameRoutes } from "@metroclavier/shared";
 import { computed, ref } from "vue";
 
 const props = defineProps<{

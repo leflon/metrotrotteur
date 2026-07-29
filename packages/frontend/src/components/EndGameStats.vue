@@ -1,15 +1,14 @@
 <script setup lang="ts">
-import { api } from "@/lib/api";
-import { calculateStopWPM, formatDuration, splitDuration } from "@/lib/utils";
+import { calculateStopWPM, formatDuration } from "@/lib/utils";
 import type { GameStats } from "@/types/GameStats";
 import {
-  LineController,
-  LineElement,
-  PointElement,
-  Chart,
-  LinearScale,
-  CategoryScale,
-  Tooltip,
+    CategoryScale,
+    Chart,
+    LinearScale,
+    LineController,
+    LineElement,
+    PointElement,
+    Tooltip,
 } from "chart.js";
 import { computed, onMounted, toRaw, useTemplateRef } from "vue";
 

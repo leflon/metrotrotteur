@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { calculateSlidingWPM, splitDuration } from "@/lib/utils";
-import type { ComputedRefSymbol } from "@vue/reactivity";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 
 const props = defineProps<{

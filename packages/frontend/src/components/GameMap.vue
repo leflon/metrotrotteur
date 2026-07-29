@@ -1,26 +1,27 @@
 <script setup lang="ts">
+import {
+    LINE_OPACITY_EXPRESSION,
+    STOP_CIRCLE_COLOR_EXPRESSION,
+    STOP_CIRCLE_STROKE_WIDTH_EXPRESSION,
+    STOP_OPACITY_EXPRESSION,
+} from "@/lib/MapLibreExpressions";
+import type { GameTrip } from "@metroclavier/shared";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { onMounted, watch } from "vue";
-import { GeoJSONSource, Map as MapLibre } from "maplibre-gl";
-import type { GameTrip } from "@metroclavier/shared";
-import {
-  LINE_OPACITY_EXPRESSION,
-  STOP_CIRCLE_COLOR_EXPRESSION,
-  STOP_CIRCLE_STROKE_WIDTH_EXPRESSION,
-  STOP_OPACITY_EXPRESSION,
-} from "@/lib/MapLibreExpressions";
+
+const {Map: MapLibre } = await import('maplibre-gl');
 
 const DEFAULT_CENTER = [2.333333, 48.859667] as [number, number];
 const DEFAULT_ZOOM = 12;
 
 const props = defineProps<{
-  geojson: GeoJSONSource;
+  geojson: any; // TODO: get the right type
   trip: GameTrip;
   focusedStopIndex: number;
   angle: number;
 }>();
 
-let map: MapLibre;
+let map: InstanceType<typeof MapLibre>;
 
 let resolveMapReady: () => void;
 const mapReady = new Promise<void>((resolve) => {

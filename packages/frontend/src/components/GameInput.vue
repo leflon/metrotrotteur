@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { GameTransfer, GameTrip } from "@metroclavier/shared";
-import { onMounted, ref, watch, useTemplateRef, computed } from "vue";
+import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 
 const props = defineProps<{
   currentStop: string;
