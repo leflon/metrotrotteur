@@ -154,7 +154,7 @@ input.catch-input {
   gap: 5px;
   background: #fff;
   border-radius: 10em;
-  font-family: Arial;
+  font-family: 'Parisine';
   border: 2px solid var(--color);
   transition: all .5s ease;
   margin-bottom: 10px;
@@ -185,8 +185,10 @@ input.catch-input {
   justify-content: center;
   align-items: center;
   gap: 10px;
-  background: var(--bg);
-  color: var(--fg);
+  background: white;
+  font: 12pt 'Parisine';
+  color: black;
+  border-radius: 2px 2px 0px 0px;
   padding: 4px 5px;
   transition: background .3s ease, color .3s ease;
 }
@@ -195,8 +197,8 @@ input.catch-input {
   background: #0a0082;
   padding: 10px 30px;
   font-family: monospace;
+  font-size: 18pt;
   font-weight: bold;
-  font-size: 20pt;
   text-align: center;
 
   & span {
@@ -204,10 +206,19 @@ input.catch-input {
     --color: white;
     position: relative;
     display: inline-block;
-    margin: 0 4px;
-    border-bottom: 3px solid var(--color);
     color: var(--color);
+    margin: 0 3px;
     padding-bottom: 3px;
+    &:before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80%;
+      height: 2px;
+      background: var(--color);
+    }
   }
 
   & .current {
@@ -217,7 +228,7 @@ input.catch-input {
       height: 70%;
       width: 2px;
       position: absolute;
-      left: -5px;
+      left: -3px;
       bottom: 15%;
       background: white;
       border-radius: 10em;

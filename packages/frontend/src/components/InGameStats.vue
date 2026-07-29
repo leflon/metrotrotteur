@@ -16,8 +16,9 @@ const formattedClock = computed(() => {
 
   const sSec = `${seconds}`.padStart(2, "0");
   const sMin = `${minutes}`.padStart(2, "0");
-
-  return `${sMin}:${sSec}`;
+  // Set opacity here rather than in a CSS keyframes to ensure seconds and the clock tick are synchronized.
+  const opacity = seconds % 2 === 0 ? 1 : 0.5;
+  return [sMin, sSec, opacity];
 });
 
 const wpm = computed(() =>
@@ -39,7 +40,11 @@ onUnmounted(() => clearInterval(intervalId));
 <template>
   <div class="ingame-stats">
     <div class="stat wpm" data-label="WPM">{{ wpm }}</div>
-    <div class="stat clock" data-label="Temps">{{ formattedClock }}</div>
+    <div class="stat clock" data-label="Temps">
+      <span>{{formattedClock[0]}}</span>
+      <span class='clock-sep' :style="{ opacity: formattedClock[2] }">:</span>
+      <span>{{formattedClock[1]}}</span>
+    </div>
   </div>
 </template>
 
@@ -69,7 +74,7 @@ onUnmounted(() => clearInterval(intervalId));
     content: attr(data-label);
     position: absolute;
     top: 5px;
-    left: 5px;
+    left: 7px;
     font-weight: 400;
     color: white;
     font-size: 7pt;
@@ -87,5 +92,8 @@ onUnmounted(() => clearInterval(intervalId));
     border-radius: 10em;
     transform: translate(0, -50%);
   }
+}
+.clock-sep {
+  padding: 0 1px;
 }
 </style>
