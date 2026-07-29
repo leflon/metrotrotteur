@@ -187,14 +187,14 @@ input.catch-input {
   gap: 10px;
   background: white;
   font: 12pt 'Parisine';
-  color: black;
+  color: var(--black);
   border-radius: 2px 2px 0px 0px;
   padding: 4px 5px;
   transition: background .3s ease, color .3s ease;
 }
 
 .guess-container {
-  background: #0a0082;
+  background: var(--blue);
   padding: 10px 30px;
   font-family: monospace;
   font-size: 18pt;

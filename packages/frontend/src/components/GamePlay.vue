@@ -25,7 +25,6 @@ const state = ref({
   trip: props.trip,
   currentStopIndex: 0,
   possibleTransfers: [] as GameTransfer[],
-  gameStart: new Date(),
   currentStopStart: new Date(),
   status: "playing" as "playing" | "stats",
 });
@@ -35,6 +34,7 @@ const stats = ref<GameStats>({
   wpmHistory: [],
   timedCorrectChars: [],
   duration: 0,
+  gameStart: new Date()
 });
 
 const currentStop = computed(() => {
@@ -113,18 +113,24 @@ const onTransfer = async (trip: string) => {
   state.value.currentStopIndex = newIndex;
 };
 
+const onPlayAgain = () => {
+  emit('end');
+}
+
 let wpmInterval: number;
 const startGame = () => {
   setPossibleTransfers();
-  wpmInterval = setInterval(() => {
-    const wpm = calculateSlidingWPM(stats.value.timedCorrectChars);
-    stats.value.wpmHistory.push({ value: wpm, time: new Date() });
-  }, 3000);
+  wpmInterval = setInterval(computeAndSaveWPM, 3000);
+};
+
+const computeAndSaveWPM = () => {
+  const wpm = calculateSlidingWPM(stats.value.timedCorrectChars);
+  stats.value.wpmHistory.push({ value: wpm, time: new Date() });
 };
 
 const displayGameStats = () => {
   state.value.status = "stats";
-  stats.value.duration = Date.now() - state.value.gameStart.getTime();
+  stats.value.duration = Date.now() - stats.value.gameStart.getTime();
 };
 
 onMounted(startGame);
@@ -139,7 +145,7 @@ onUnmounted(() => clearInterval(wpmInterval));
   />
   <div class="game-center-overlay" v-if="state.status === 'playing'">
     <in-game-stats
-      :start="state.gameStart"
+      :start="stats.gameStart"
       :timedChars="stats.timedCorrectChars"
     />
     <game-input
@@ -152,7 +158,7 @@ onUnmounted(() => clearInterval(wpmInterval));
     />
   </div>
   <div v-else-if="state.status = 'stats'" class='end-game-stats'>
-    <end-game-stats :stats="stats"></end-game-stats>
+    <end-game-stats :stats="stats" @playAgain="onPlayAgain"></end-game-stats>
   </div>
 </template>
 
@@ -168,8 +174,13 @@ onUnmounted(() => clearInterval(wpmInterval));
 .end-game-stats {
   position: fixed;
   z-index: 99999999;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(3px);
 }
 </style>

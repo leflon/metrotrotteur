@@ -104,13 +104,13 @@ const tripsList = computed(() =>
   gap: 10px;
 }
 .trip {
-  background: #0a0082;
+  background: var(--blue);
   color: white;
   padding: 4px 8px;
   cursor: pointer;
   &:hover,
   &.selected {
-    background: black;
+    background: var(--black);
   }
 }
 .play {

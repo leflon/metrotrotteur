@@ -70,10 +70,10 @@ onUnmounted(() => intervals.forEach(clearInterval));
 
 .stat {
   position: relative;
-  color: #ffbe00;
+  color: var(--yellow);
   min-width: 70px;
   text-align: center;
-  background: #000;
+  background: var(--black);
   padding: 20px 0;
   font-family: "Parisine";
   font-weight: 600;

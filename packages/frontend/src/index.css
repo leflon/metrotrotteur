@@ -10,6 +10,13 @@
   src: url('/fonts/parisine-bold.otf');
 }
 
+:root {
+  --blue: #0a0082;
+  --yellow: #FFBE00;
+  --white: white;
+  --black: black;
+}
+
 html,
 body,
 #app {
@@ -24,4 +31,21 @@ body,
   z-index: 999999;
   background: #0004;
   border: 1px dashed red;
+}
+
+button {
+  appearance: none;
+  border: none;
+  background: var(--blue);
+  color: var(--white);
+  font: 14pt 'Parisine';
+  padding: 4px 8px;
+  cursor: pointer;
+  &:focus {
+    outline: 3px solid var(--yellow);
+    outline-offset: 3px;
+  }
+  &:active {
+    transform: translateY(1px);
+  }
 }

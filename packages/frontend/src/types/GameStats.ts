@@ -12,4 +12,5 @@ export type GameStats = {
   }[];
   timedCorrectChars: Date[];
   duration: number;
+  gameStart: Date;
 };
