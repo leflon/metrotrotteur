@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import { calculateSlidingWPM, splitDuration } from "@/lib/utils";
+import type { ComputedRefSymbol } from "@vue/reactivity";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 
 const props = defineProps<{
   start: Date;
-  correctCharCount: number;
+  timedChars: Date[];
 }>();
 
 const elapsedTime = ref(Date.now() - props.start.getTime());
@@ -11,8 +13,7 @@ const elapsedTime = ref(Date.now() - props.start.getTime());
 const formattedClock = computed(() => {
   let time = elapsedTime.value;
 
-  const minutes = Math.floor(time / 60_000);
-  const seconds = Math.floor((time % 60_000) / 1000);
+  const [minutes, seconds] = splitDuration(time);
 
   const sSec = `${seconds}`.padStart(2, "0");
   const sMin = `${minutes}`.padStart(2, "0");
@@ -21,29 +22,37 @@ const formattedClock = computed(() => {
   return [sMin, sSec, opacity];
 });
 
-const wpm = computed(() =>
-  `${Math.floor((props.correctCharCount / 5 / elapsedTime.value) * 60_000)}`.padStart(
-    3,
-    "0",
-  ),
-);
 
-let intervalId: number;
+let wpmRefreshKey = ref(0);
+const wpm = computed(() => {
+  wpmRefreshKey.value;
+  
+  const wpm = calculateSlidingWPM(props.timedChars);
+  return `${wpm}`.padStart(3, "0");
+});
+
+let intervals: number[] = [];
 onMounted(() => {
-  intervalId = setInterval(() => {
+  let i = setInterval(() => {
     elapsedTime.value = Date.now() - props.start.getTime();
   }, 1000);
+  intervals.push(i);
+
+  i = setInterval(() => {
+    wpmRefreshKey.value++;
+  }, 250);
+  intervals.push(i);
 });
-onUnmounted(() => clearInterval(intervalId));
+onUnmounted(() => intervals.forEach(clearInterval));
 </script>
 
 <template>
   <div class="ingame-stats">
     <div class="stat wpm" data-label="WPM">{{ wpm }}</div>
     <div class="stat clock" data-label="Temps">
-      <span>{{formattedClock[0]}}</span>
-      <span class='clock-sep' :style="{ opacity: formattedClock[2] }">:</span>
-      <span>{{formattedClock[1]}}</span>
+      <span>{{ formattedClock[0] }}</span>
+      <span class="clock-sep" :style="{ opacity: formattedClock[2] }">:</span>
+      <span>{{ formattedClock[1] }}</span>
     </div>
   </div>
 </template>
@@ -84,7 +93,7 @@ onUnmounted(() => clearInterval(intervalId));
   &:not(:last-child):after {
     z-index: 10;
     --width: 2px;
-    content: '';
+    content: "";
     position: absolute;
     right: calc(-1 * var(--width) / 2);
     top: 50%;

@@ -1,15 +1,14 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import GameMap from "./GameMap.vue";
 import GameInput from "./GameInput.vue";
 import InGameStats from "./InGameStats.vue";
-import {
-  type GameRoutes,
-  type GameTrip,
-  type GameTransfer,
-} from "@metroclavier/shared";
+import EndGameStats from "./EndGameStats.vue";
+import { type GameTrip, type GameTransfer } from "@metroclavier/shared";
 import { api } from "@/lib/api";
 import type { GeoJSONSource } from "maplibre-gl";
+import type { GameStats } from "@/types/GameStats";
+import { calculateSlidingWPM } from "@/lib/utils";
 
 const emit = defineEmits<{
   end: [];
@@ -26,9 +25,16 @@ const state = ref({
   trip: props.trip,
   currentStopIndex: 0,
   possibleTransfers: [] as GameTransfer[],
-  visitedStops: [] as string[],
-  startTime: new Date(),
-  correctCharCount: 0,
+  gameStart: new Date(),
+  currentStopStart: new Date(),
+  status: "playing" as "playing" | "stats",
+});
+
+const stats = ref<GameStats>({
+  visitedStops: [],
+  wpmHistory: [],
+  timedCorrectChars: [],
+  duration: 0,
 });
 
 const currentStop = computed(() => {
@@ -51,20 +57,18 @@ const setPossibleTransfers = () => {
   const transfers = trip.transfers[state.value.currentStopIndex];
   if (!transfers) return (state.value.possibleTransfers = []);
 
-  console.log(state.value.visitedStops);
-
   const possible = transfers
     .filter(
       (t) =>
         // Always allow the current trip so we can circle back to it
-        t.trip === state.value.trip.id
+        t.trip === state.value.trip.id ||
         // Allow any transfer to another line
-        || state.value.trip.route.id !== t.route.id
+        state.value.trip.route.id !== t.route.id ||
         // Prevent a transfer that would make it go backwards on the same line
-        || state.value.visitedStops.at(-1) !== t.nextStop 
-        &&
-        // Also prevent a transfer that would not change the next stop while on the next line
-        (state.value.trip.stops[state.value.currentStopIndex + 1]?.id !== t.nextStop),
+        (stats.value.visitedStops.at(-1)?.stop.id !== t.nextStop &&
+          // Also prevent a transfer that would not change the next stop while on the next line
+          state.value.trip.stops[state.value.currentStopIndex + 1]?.id !==
+            t.nextStop),
     )
     // Force the current trip at the last position to loop through all other options
     // before falling back on it.
@@ -80,33 +84,51 @@ const setPossibleTransfers = () => {
 };
 
 const onCorrect = () => {
-  if (state.value.currentStopIndex === state.value.trip.stops.length - 1)
-    emit("end");
-  else {
-    state.value.visitedStops.push(currentStop.value!.id);
+  stats.value.visitedStops.push({
+    stop: currentStop.value!,
+    route: state.value.trip.route,
+    duration: Date.now() - state.value.currentStopStart.getTime(),
+  });
+  
+  if (state.value.currentStopIndex === state.value.trip.stops.length - 1) {
+    displayGameStats();
+  } else {
     state.value.currentStopIndex++;
+    state.value.currentStopStart = new Date();
     setPossibleTransfers();
   }
 };
 
-const onCorrectChar = () => state.value.correctCharCount++;
+const onCorrectChar = () => {
+  stats.value.timedCorrectChars.push(new Date());
+};
 
 const onTransfer = async (trip: string) => {
   const tripData = (await api.get(`trip/${trip}`)) as GameTrip;
 
-  console.log(state.value.currentStopIndex);
   const currentStop = state.value.trip.stops[state.value.currentStopIndex]!;
-  console.log(currentStop);
   const newIndex = tripData.stops.findIndex((s) => s.id === currentStop.id);
-  console.log(newIndex);
 
   state.value.trip = tripData;
   state.value.currentStopIndex = newIndex;
 };
 
-onMounted(async () => {
+let wpmInterval: number;
+const startGame = () => {
   setPossibleTransfers();
-});
+  wpmInterval = setInterval(() => {
+    const wpm = calculateSlidingWPM(stats.value.timedCorrectChars);
+    stats.value.wpmHistory.push({ value: wpm, time: new Date() });
+  }, 3000);
+};
+
+const displayGameStats = () => {
+  state.value.status = "stats";
+  stats.value.duration = Date.now() - state.value.gameStart.getTime();
+};
+
+onMounted(startGame);
+onUnmounted(() => clearInterval(wpmInterval));
 </script>
 
 <template>
@@ -115,10 +137,10 @@ onMounted(async () => {
     :geojson="map"
     :focusedStopIndex="state.currentStopIndex"
   />
-  <div class='game-center-overlay'>
+  <div class="game-center-overlay" v-if="state.status === 'playing'">
     <in-game-stats
-      :start="state.startTime"
-      :correctCharCount="state.correctCharCount"
+      :start="state.gameStart"
+      :timedChars="stats.timedCorrectChars"
     />
     <game-input
       :currentStop="currentStopName"
@@ -129,6 +151,9 @@ onMounted(async () => {
       @correctChar="onCorrectChar"
     />
   </div>
+  <div v-else-if="state.status = 'stats'" class='end-game-stats'>
+    <end-game-stats :stats="stats"></end-game-stats>
+  </div>
 </template>
 
 <style scoped>
@@ -138,5 +163,13 @@ onMounted(async () => {
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
+}
+
+.end-game-stats {
+  position: fixed;
+  z-index: 99999999;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 </style>
