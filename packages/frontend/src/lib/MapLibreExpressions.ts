@@ -20,7 +20,11 @@ export const LINE_OPACITY_EXPRESSION: (focusedRoute: string) => DataDrivenProper
   "case",
   ["==", ["get", "routeId"], f],
   1,
-  0.3
+  ["case",
+    ["boolean", ["get", "hasOverlap"]],
+    0,
+    0.3
+  ]
 ];
 
 export const STOP_OPACITY_EXPRESSION: (focusedRoute: string) => DataDrivenPropertyValueSpecification<number> = f => [

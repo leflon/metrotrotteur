@@ -52,10 +52,9 @@ for (const trip of Object.values(GAME_TRIPS)) {
 
     // Add segment
     const key = keyGen(stop1, stop2, trip.route.id);
-    if (key in routes) {
-      console.log(key, 'already');
-      continue;
-    };
+    if (key in routes) continue;
+    const ids = [stop1.id, stop2.id];
+    const hasOverlap = Object.values(routes).some(route => ids.includes(route.properties.from) && ids.includes(route.properties.to));
     routes[key] = {
       type: 'Feature',
       geometry: {
@@ -71,6 +70,7 @@ for (const trip of Object.values(GAME_TRIPS)) {
         routeId: trip.route.id,
         routeName: trip.route.name,
         routeColor: trip.route.color,
+        hasOverlap
       },
     };
   }

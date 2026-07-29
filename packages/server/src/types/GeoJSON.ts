@@ -12,6 +12,7 @@ export type GeoJSONRoute = {
       routeId: string;
       routeName: string;
       routeColor: string;
+      hasOverlap: boolean;
     };
 }
 

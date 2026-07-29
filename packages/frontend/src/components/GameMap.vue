@@ -77,7 +77,6 @@ watch(
       "line-opacity",
       LINE_OPACITY_EXPRESSION(route.id),
     );
-    // map.setPaintProperty("stops-layer", "circle-stroke-opacity", STOP_OPACITY_EXPRESSION(route.id))
     map.setPaintProperty(
       "stops-layer",
       "circle-opacity",
