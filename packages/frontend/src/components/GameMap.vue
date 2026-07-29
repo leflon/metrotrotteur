@@ -127,9 +127,6 @@ watch(
 <template>
   <div class='map-container'>
     <div id="game-map"></div>
-    <div class='cute-train'>
-      <img src='/train.png' width="48" :style="{ 'transform': `rotate(${props.angle - 90}deg)` }" />
-    </div>
   </div>
 </template>
 

@@ -43,15 +43,18 @@ const tripsList = computed(() =>
         <img :src="route.picto" :width="24" />
       </div>
     </div>
-    <div class="trips-list">
-      <button
-        v-for="trip in tripsList"
-        class="trip"
-        :class="{ selected: selectedTrip === trip.id }"
-        @click="selectedTrip = trip.id"
-      >
-        {{ trip.destination }}
-      </button>
+    <div v-if="tripsList.length > 0">
+      <h2>Sélectionnez une direction</h2>
+      <div class="trips-list">
+        <button
+          v-for="trip in tripsList"
+          class="trip"
+          :class="{ selected: selectedTrip === trip.id }"
+          @click="selectedTrip = trip.id"
+        >
+          {{ trip.destination }}
+        </button>
+      </div>
     </div>
     <button
       class="play"
@@ -64,16 +67,16 @@ const tripsList = computed(() =>
 </template>
 
 <style scoped>
+h2 {
+  font: bold 14pt 'Parisine';
+}
 .game-menu {
-  position: fixed;
-  z-index: 9999;
-  top: 50%;
-  left: 50%;
   background: white;
+  border: 2px solid #ddd;
+  border-radius: 10px;
   width: 600px;
-  height: 250px;
-  padding: 5px 20px;
-  transform: translate(-50%, -50%);
+  height: max-content;
+  padding: 30px 20px;
 }
 
 .routes-list {
@@ -108,6 +111,7 @@ const tripsList = computed(() =>
 }
 .play {
   display: block;
-  margin: 10px auto;
+  margin: 0 auto;
+  margin-top: 20px;
 }
 </style>

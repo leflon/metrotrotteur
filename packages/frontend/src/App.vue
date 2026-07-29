@@ -40,12 +40,50 @@ onMounted(async () => {
 
 <template>
   <template v-if="GAME_ROUTES">
-    <game-menu v-if="appState === 'menu'" :routes="GAME_ROUTES" @play="onPlay" />
+    <div class='app-home' v-if="appState === 'menu'">
+      <img class='splash' src='/splash.webp'></img>
+      <h1><span class='clavi'>Clavi</span><span class='metro'>Métro</span></h1>
+      <game-menu :routes="GAME_ROUTES" @play="onPlay" />
+    </div>
     <game-play v-if="appState === 'playing'" :trip='gameParameters.trip!' :map="GAME_GEOJSON" @end="onEnd" />
   </template>
   <div class="loading" v-else>Chargement des ressources...</div>
 </template>
 <style scoped>
+.app-home {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  height: 100%;
+}
+h1 {
+  font: bold 28pt 'Parisine';
+  position: relative;
+  text-align: center;
+  & .metro {
+    font-size: 32pt;
+  }
+  &:after {
+    top: 0;
+    content: 'INDEV';
+    font: bold 11pt monospace;
+    background: #fcbb08;
+    color: red;
+    padding: 2px 4px;
+    position: absolute;
+    transform: rotate(22deg) translate(-30px,5px);
+  }
+}
+.splash {
+  position: fixed;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  filter: blur(10px);
+}
 .loading {
   position: fixed;
   width: 100%;
