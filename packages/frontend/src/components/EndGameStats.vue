@@ -33,6 +33,14 @@ const formattedClock = computed(() => {
   return `${sMin}:${sSec}`;
 });
 
+const wpmValues = computed(() => props.stats.wpmHistory.map((_) => _.value));
+const maxWPM = computed(() => Math.max(...wpmValues.value));
+const avgWPM = computed(() =>
+  Math.floor(
+    wpmValues.value.reduce((a, b) => a + b, 0) / wpmValues.value.length,
+  ),
+);
+
 const isTransfer = (index: number) => {
   const current = props.stats.visitedStops[index];
   const previous = props.stats.visitedStops[index - 1];
@@ -126,8 +134,12 @@ onMounted(() => {
           </div>
         </div>
         <div class="stats">
-          <div class='stat-title'>Mots Par Minute (WPM)</div>
+          <div class="stat-title">Mots Par Minute (WPM)</div>
           <canvas class="wpm-chart" ref="chart"></canvas>
+          <div class="figures">
+            <div data-label="Moyenne">{{ avgWPM }}<span>WPM</span></div>
+            <div data-label="Maximum">{{ maxWPM }}<span>WPM</span></div>
+          </div>
           <div class="next-cta">
             <button @click="onPlayAgain">Rejouer</button>
           </div>
@@ -294,7 +306,6 @@ onMounted(() => {
   & .next-cta {
     align-self: flex-end;
     margin: 10px 0;
-    
   }
 
   & canvas {
@@ -305,7 +316,40 @@ onMounted(() => {
 }
 
 .stat-title {
-  font: bold 16pt 'Parisine';
+  font: bold 16pt "Parisine";
   margin: 10px 0;
 }
+
+.figures {
+  display: flex;
+  gap: 10px;
+  margin: 10px 0;
+
+  & div {
+    position: relative;
+    width: 100px;
+    height: 50px;
+    background: var(--black);
+    color: var(--yellow);
+    border: 2px solid #444;
+    border-radius: 4px;
+    font: bold 19pt 'Parisine';
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    & span {
+      font-size: 10pt;
+      margin-left: 2px;
+    }
+    &:before {
+      content: attr(data-label);
+      position: absolute;
+      font: 400 8pt 'Parisine';
+      color: white;
+      top: 1px;
+      left: 5px;
+    }
+  }
+}
+
 </style>

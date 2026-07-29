@@ -92,6 +92,7 @@ const onCorrect = () => {
   
   if (state.value.currentStopIndex === state.value.trip.stops.length - 1) {
     displayGameStats();
+    clearInterval(wpmInterval);
   } else {
     state.value.currentStopIndex++;
     state.value.currentStopStart = new Date();
