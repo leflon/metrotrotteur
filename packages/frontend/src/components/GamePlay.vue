@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, type ComputedRef } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch, type ComputedRef } from "vue";
 import GameMap from "./GameMap.vue";
 import GameInput from "./GameInput.vue";
 import InGameStats from "./InGameStats.vue";
@@ -8,7 +8,8 @@ import { type GameTrip, type GameTransfer } from "@metroclavier/shared";
 import { api } from "@/lib/api";
 import type { GeoJSONSource } from "maplibre-gl";
 import type { GameStats } from "@/types/GameStats";
-import { angle, calculateSlidingWPM } from "@/lib/utils";
+import { angle, calculateSlidingWPM, convertStopsToEasy } from "@/lib/utils";
+import type { GameParams } from "@/types/GameParams";
 
 const emit = defineEmits<{
   end: [];
@@ -19,6 +20,7 @@ const props = defineProps<{
   // after the gameplay was mounted. The gameplay handles it itself.
   trip: GameTrip;
   map: GeoJSONSource;
+  params: GameParams;
 }>();
 
 const state = ref({
@@ -144,6 +146,19 @@ const displayGameStats = () => {
   state.value.currentStopIndex = -1;
   stats.value.duration = Date.now() - stats.value.gameStart.getTime();
 };
+
+let wasSimplified = false;
+watch(() => state.value.trip, () => {
+  console.log('hello');
+  if (wasSimplified) {
+    wasSimplified = false;
+    return;
+  }
+  if (props.params.easyMode) {
+    state.value.trip.stops = convertStopsToEasy(state.value.trip.stops);
+    wasSimplified = true;
+  }
+}, { immediate: true, deep: true });
 
 onMounted(startGame);
 </script>

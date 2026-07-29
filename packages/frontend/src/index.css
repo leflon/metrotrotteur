@@ -49,3 +49,20 @@ button {
     transform: translateY(1px);
   }
 }
+
+button.toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  &:before {
+    content: '';
+    font-size: 12pt;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 16px;
+    height: 16px;
+    background: #fff4;
+  }
+  &[data-value='true']:before { content: '✓'}
+}

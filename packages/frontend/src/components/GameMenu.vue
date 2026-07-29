@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { GameParams } from "@/types/GameParams";
 import type { GameRoute, GameRoutes } from "@metroclavier/shared";
 import { computed, ref } from "vue";
 
@@ -7,8 +8,12 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  play: [string];
+  play: [string, GameParams];
 }>();
+
+const params = ref<GameParams>({
+  easyMode: false
+});
 
 const selectedRoute = ref<string>("");
 const selectedTrip = ref<string>("");
@@ -56,13 +61,23 @@ const tripsList = computed(() =>
         </button>
       </div>
     </div>
-    <button
-      class="play"
-      v-if="selectedTrip"
-      @click="emit('play', selectedTrip)"
-    >
-      Jouer
-    </button>
+    <div v-if="selectedTrip">
+      <div class='game-params'>
+        <button 
+          class='toggle-btn' 
+          :data-value="params.easyMode"
+          @click="params.easyMode = !params.easyMode">
+            Mode Facile
+          </button>
+      </div>
+      <button
+        class="play"
+        v-if="selectedTrip"
+        @click="emit('play', selectedTrip, params)"
+      >
+        Jouer
+      </button>
+    </div>
   </div>
 </template>
 

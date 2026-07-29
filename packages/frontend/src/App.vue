@@ -9,6 +9,7 @@ import {
 } from "@metroclavier/shared";
 import { api } from "./lib/api";
 import { GeoJSONSource } from "maplibre-gl";
+import type { GameParams } from './types/GameParams';
 
 const GAME_ROUTES = ref<GameRoutes>({});
 const GAME_GEOJSON = ref<GeoJSONSource>({} as GeoJSONSource);
@@ -17,11 +18,13 @@ const appState = ref<"menu" | "playing">("menu");
 
 const gameParameters = ref({
   trip: null as GameTrip | null,
+  params: { easyMode: false }
 });
 
-const onPlay = async (trip: string) => {
+const onPlay = async (trip: string, params: GameParams) => {
   const tripData = await api.get(`trip/${trip}`) as GameTrip;
   gameParameters.value.trip = tripData;
+  gameParameters.value.params = params;
   appState.value = "playing";
 };
 
@@ -45,7 +48,13 @@ onMounted(async () => {
       <h1><span class='clavi'>Clavi</span><span class='metro'>Métro</span></h1>
       <game-menu :routes="GAME_ROUTES" @play="onPlay" />
     </div>
-    <game-play v-if="appState === 'playing'" :trip='gameParameters.trip!' :map="GAME_GEOJSON" @end="onEnd" />
+    <game-play 
+      v-if="appState === 'playing'" 
+      :trip='gameParameters.trip!' 
+      :map="GAME_GEOJSON" 
+      :params="gameParameters.params!"
+      @end="onEnd" 
+    />
   </template>
   <div class="loading" v-else>Chargement des ressources...</div>
 </template>

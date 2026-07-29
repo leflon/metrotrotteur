@@ -1,4 +1,5 @@
 import type { GameStats } from "@/types/GameStats";
+import type { GameStop } from "@metroclavier/shared";
 
 export function calculateSlidingWPM(
   timedChars: Date[],
@@ -55,4 +56,18 @@ export function angle(geo1: number[], geo2: number[]): number {
 	angle = (toDeg(angle) + 360) % 360; // Normalize to 0-360
 
 	return angle;
+}
+
+export function convertStopsToEasy(stops: GameStop[]): GameStop[] {
+  return stops.map(stop => ({
+    ...stop,
+    name: stop.name
+      .toLowerCase()
+      .replace(/\s+\-\s+/g, ' ')
+      .replace(/\((.*)\)/g, '')
+      .replace(/\./g, '')
+      .replace(/[-']/, ' ')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, ''),
+  }));
 }
