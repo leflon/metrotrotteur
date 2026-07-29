@@ -38,6 +38,8 @@ const stats = ref<GameStats>({
   gameStart: new Date()
 });
 
+const isExiting = ref(false);
+
 const currentStop = computed(() => {
   const i = state.value.currentStopIndex;
   if (i === -1) return null;
@@ -147,20 +149,36 @@ const displayGameStats = () => {
   stats.value.duration = Date.now() - stats.value.gameStart.getTime();
 };
 
-let wasSimplified = false;
 watch(() => state.value.trip, () => {
-  console.log('hello');
-  if (wasSimplified) {
-    wasSimplified = false;
-    return;
-  }
   if (props.params.easyMode) {
     state.value.trip.stops = convertStopsToEasy(state.value.trip.stops);
-    wasSimplified = true;
   }
-}, { immediate: true, deep: true });
+}, { immediate: true });
 
-onMounted(startGame);
+let exitTimeout: number | undefined;
+const onKeyDown = (e: KeyboardEvent) => {
+  if (e.key !== 'Escape' || exitTimeout !== undefined) return;
+  isExiting.value = true;
+  exitTimeout = setTimeout(() => {
+    emit('end');
+  }, 1500);
+}
+const onKeyUp = (e: KeyboardEvent) => {
+  if (e.key !== 'Escape') return;
+  clearTimeout(exitTimeout);
+  exitTimeout = undefined;
+  isExiting.value = false;
+}
+
+onMounted(() => {
+  startGame();
+  window.addEventListener('keydown', onKeyDown);
+  window.addEventListener('keyup', onKeyUp);
+});
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeyDown);
+  window.removeEventListener('keyup', onKeyUp);
+});
 </script>
 
 <template>
@@ -170,6 +188,14 @@ onMounted(startGame);
     :focusedStopIndex="state.currentStopIndex"
     :angle="trainAngle"
   />
+  <Transition name="slide">
+    <div class='exit-indicator' v-if='isExiting'>
+      <span class='regular'>Quitter la partie</span>
+      <div class='overlay-wrapper'>
+        <div>Quitter la partie</div>
+      </div>
+    </div>
+  </Transition>
   <div class="game-center-overlay" v-if="state.status === 'playing'">
     <in-game-stats
       :start="stats.gameStart"
@@ -190,6 +216,52 @@ onMounted(startGame);
 </template>
 
 <style scoped>
+.exit-indicator {
+  --width: 120px;
+  position: fixed;
+  z-index: 99999;
+  top: 20px;
+  left: 20px;
+  transition: .3s ease;
+  padding: 10px 0;
+  width: var(--width);
+  text-align: center;
+  font: bold 10pt 'Parisine';
+  background: #fffe;
+  border-radius: 10px;
+  overflow: hidden;
+  & .overlay-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    animation: fill-in 1.5s linear;
+  }
+  & .overlay-wrapper > div {
+    white-space: pre;
+    color: white;
+    width: var(--width);
+    height: 100%;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--blue);
+  }
+}
+.slide-enter-from,
+.slide-leave-to {
+  transform: translateX(calc(-20px + -100%));
+  opacity: 0;
+  filter: blur(15px);
+}
+
+@keyframes fill-in {
+  from { width: 0; }
+}
+
 .game-center-overlay {
   position: fixed;
   z-index: 999999;

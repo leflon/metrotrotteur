@@ -64,9 +64,9 @@ export function convertStopsToEasy(stops: GameStop[]): GameStop[] {
     name: stop.name
       .toLowerCase()
       .replace(/\s+\-\s+/g, ' ')
-      .replace(/\((.*)\)/g, '')
+      .replace(/\s+\((.*)\)/g, '')
       .replace(/\./g, '')
-      .replace(/[-']/, ' ')
+      .replace(/[-']/g, ' ')
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, ''),
   }));
