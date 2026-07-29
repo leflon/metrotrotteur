@@ -285,4 +285,11 @@ onUnmounted(() => {
   align-items: center;
   backdrop-filter: blur(3px);
 }
+
+@media screen and (max-width: 540px) {
+  .game-center-overlay {
+    bottom: 0;
+  }
+}
 </style>
+

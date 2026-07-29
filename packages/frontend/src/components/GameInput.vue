@@ -87,6 +87,8 @@ watch(guess, (value) => {
         <div 
           class='transfer-container' 
           v-if='transfers.length > 0' 
+          @mousedown.prevent
+          @pointerdown.prevent
           @click="onTransfer"
           :style='{"--color": "#" + transfers[transferIndex]?.route.color}'
         >
@@ -103,6 +105,11 @@ watch(guess, (value) => {
           v-model="guess"
           @keydown="onKeydown"
           type="text"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+          data-form-type="other"
         />
         <div
           class="headsign"
