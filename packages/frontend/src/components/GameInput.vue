@@ -46,7 +46,6 @@ onMounted(() => {
 const FORBIDDEN_KEYS = ['ArrowLeft', 'ArrowRight', 'Home', 'End'];
 
 const onKeydown = (e: KeyboardEvent) => {
-  if (e.ctrlKey || e.metaKey) return e.preventDefault();
   if (FORBIDDEN_KEYS.includes(e.key)) return e.preventDefault();
   
   if (e.key === "Tab") {
