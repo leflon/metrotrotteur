@@ -361,6 +361,7 @@ onMounted(() => {
   .content {
     flex-direction: column;
     overflow: auto;
+    display: block;
   }
   .trip-breakdown {
     overflow-y: visible;
