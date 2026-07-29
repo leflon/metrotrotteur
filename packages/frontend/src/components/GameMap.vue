@@ -13,8 +13,6 @@ import { onMounted, watch } from "vue";
 
 setWorkerUrl(workerUrl);
 
-
-
 const DEFAULT_CENTER = [2.333333, 48.859667] as [number, number];
 const DEFAULT_ZOOM = 12;
 

@@ -24,6 +24,11 @@ body,
   height: 100%;
 }
 
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
 .debug {
   position: fixed;
   top: 0;
@@ -34,6 +39,8 @@ body,
 }
 
 button {
+  touch-action: manipulation;
+  user-select: none;
   appearance: none;
   border: none;
   background: var(--blue);

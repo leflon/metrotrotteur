@@ -165,6 +165,7 @@ onMounted(() => {
 }
 
 .header {
+  position: inherit;
   box-sizing: border-box;
   display: flex;
   justify-content: space-between;
@@ -213,6 +214,10 @@ onMounted(() => {
   gap: 10px;
   padding: 5px 0;
   margin: 0 10px;
+
+  & > * {
+    flex-shrink: 0;
+  }
 
   & .stop-transfer-picto {
     width: 24px;
@@ -289,6 +294,7 @@ onMounted(() => {
   background: var(--black);
   padding: 4px 6px;
   border-radius: 4px;
+  height: fit-content;
 }
 
 .stats {
@@ -344,6 +350,30 @@ onMounted(() => {
       left: 5px;
     }
   }
+}
+
+@media screen and (max-width: 1024px) {
+  .end-game-stats-container {
+    width: 100%;
+    height: 100%;
+  }
+  
+  .content {
+    flex-direction: column;
+    overflow: auto;
+  }
+  .trip-breakdown {
+    overflow-y: visible;
+    overflow-x: auto;
+    height: unset;
+    width: 100%;
+    padding: 0 5px;
+    flex: unset;
+  }
+  .header-trip {
+    font-size: 12pt;
+  }
+  .stats {width: auto;height: auto;}
 }
 
 </style>

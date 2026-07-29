@@ -86,10 +86,12 @@ h2 {
   font: bold 14pt 'Parisine';
 }
 .game-menu {
+  box-sizing: border-box;
   background: white;
   border: 2px solid #ddd;
   border-radius: 10px;
   width: 600px;
+  max-width: 100%;
   height: max-content;
   padding: 30px 20px;
 }

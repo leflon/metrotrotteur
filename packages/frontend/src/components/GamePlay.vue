@@ -265,8 +265,12 @@ onUnmounted(() => {
   position: fixed;
   z-index: 999999;
   bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .end-game-stats {

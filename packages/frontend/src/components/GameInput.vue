@@ -87,6 +87,7 @@ watch(guess, (value) => {
         <div 
           class='transfer-container' 
           v-if='transfers.length > 0' 
+          @click="onTransfer"
           :style='{"--color": "#" + transfers[transferIndex]?.route.color}'
         >
           <div class='key-indicator'>TAB</div>
@@ -96,6 +97,13 @@ watch(guess, (value) => {
         </div>
       </Transition>
       <div class='input-container'>
+        <input
+          class="catch-input"
+          ref="input"
+          v-model="guess"
+          @keydown="onKeydown"
+          type="text"
+        />
         <div
           class="headsign"
           :style="{
@@ -109,13 +117,6 @@ watch(guess, (value) => {
         <div class="guess-container" v-html="formattedGuess"></div>
       </div>
     </div>
-    <input
-      class="catch-input"
-      ref="input"
-      v-model="guess"
-      @keydown="onKeydown"
-      type="text"
-    />
   </div>
 </template>
 
@@ -134,7 +135,9 @@ input.catch-input {
 }
 
 .visible-container {
+  box-sizing: border-box;
   width: max-content;
+  max-width: 100vw;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -142,9 +145,13 @@ input.catch-input {
 
 .transfer-container {
   --height: 45px;
+  touch-action: manipulation;
+  user-select: none;
+  cursor: pointer;
   box-sizing: border-box;
-  z-index: -1;
+  z-index: 9999;
   width: max-content;
+  max-width: 100%;
   height: var(--height);
   padding: 0 30px;
   display: flex;
@@ -155,8 +162,12 @@ input.catch-input {
   border-radius: 10em;
   font-family: 'Parisine';
   border: 2px solid var(--color);
-  transition: all .5s ease;
+  transition: all .5s ease, transform .2s ease;
   margin-bottom: 10px;
+
+  &:active {
+    transform: scale(.95);
+  }
   
   & .key-indicator {
     background: #222;
@@ -175,7 +186,9 @@ input.catch-input {
 }
 
 .input-container {
+  position: relative;
   width: max-content;
+  max-width: 100%;
   box-shadow: 0px -9px 22px 12px rgba(0,0,0,0.1);
 }
 
@@ -255,6 +268,15 @@ input.catch-input {
   }
   to {
     opacity: 0;
+  }
+}
+
+@media screen and (max-width: 540px) {
+  .input-container, .visible-container, .game-input {
+    width: 100%;
+  }
+  .guess-container {
+    font-size: 14pt;
   }
 }
 </style>
