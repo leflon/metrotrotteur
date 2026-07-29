@@ -4,14 +4,13 @@ import { onMounted, ref, watch, useTemplateRef, computed } from "vue";
 
 const props = defineProps<{
   currentStop: string;
-  nextStop: string;
-  previousStop: string;
   trip: GameTrip;
   transfers: GameTransfer[];
 }>();
-const emit = defineEmits<{ correct: []; transfer: [string] }>();
+const emit = defineEmits<{ correct: []; transfer: [string], correctChar: [] }>();
 
 const guess = ref("");
+const guessBefore = ref("");
 const transferIndex = ref(0);
 
 const input = useTemplateRef<HTMLInputElement>("input");
@@ -44,7 +43,12 @@ onMounted(() => {
   input.value?.focus();
 });
 
+const FORBIDDEN_KEYS = ['ArrowLeft', 'ArrowRight', 'Home', 'End'];
+
 const onKeydown = (e: KeyboardEvent) => {
+  if (e.ctrlKey || e.metaKey) return e.preventDefault();
+  if (FORBIDDEN_KEYS.includes(e.key)) return e.preventDefault();
+  
   if (e.key === "Tab") {
     e.preventDefault();
     onTransfer();
@@ -64,6 +68,15 @@ watch(guess, (value) => {
     emit("correct");
     guess.value = "";
     transferIndex.value = 0;
+  } else {
+    if (guess.value.length > guessBefore.value.length) {
+      const index = guess.value.length - 1;
+      const letter = guess.value[index];
+      const correct = props.currentStop[index];
+      if (letter === correct)
+        emit('correctChar');
+    } // else it was a deletion, don't emit anything.
+    guessBefore.value = guess.value;
   }
 });
 </script>

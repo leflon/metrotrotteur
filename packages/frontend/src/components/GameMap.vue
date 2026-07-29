@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import "maplibre-gl/dist/maplibre-gl.css";
 import { onMounted, watch } from "vue";
-import {
-  GeoJSONSource,
-  Map as MapLibre,
-  type DataDrivenPropertyValueSpecification,
-} from "maplibre-gl";
+import { GeoJSONSource, Map as MapLibre } from "maplibre-gl";
 import type { GameTrip } from "@metroclavier/shared";
-import { LINE_OPACITY_EXPRESSION, STOP_CIRCLE_COLOR_EXPRESSION, STOP_CIRCLE_STROKE_WIDTH_EXPRESSION, STOP_OPACITY_EXPRESSION } from "@/lib/MapLibreExpressions";
+import {
+  LINE_OPACITY_EXPRESSION,
+  STOP_CIRCLE_COLOR_EXPRESSION,
+  STOP_CIRCLE_STROKE_WIDTH_EXPRESSION,
+  STOP_OPACITY_EXPRESSION,
+} from "@/lib/MapLibreExpressions";
 
 const DEFAULT_CENTER = [2.333333, 48.859667] as [number, number];
 const DEFAULT_ZOOM = 12;
@@ -48,7 +49,7 @@ onMounted(async () => {
       source: "map-geojson",
       paint: {
         "line-color": ["concat", "#", ["get", "routeColor"]],
-        "line-width": 6
+        "line-width": 6,
       },
     });
     map.addLayer({
@@ -59,20 +60,32 @@ onMounted(async () => {
         "circle-color": STOP_CIRCLE_COLOR_EXPRESSION,
         "circle-radius": 10,
         "circle-stroke-color": "black",
-        "circle-stroke-width": STOP_CIRCLE_STROKE_WIDTH_EXPRESSION
-      }
-    })
+        "circle-stroke-width": STOP_CIRCLE_STROKE_WIDTH_EXPRESSION,
+      },
+    });
     resolveMapReady();
   });
 });
 
-watch(() => props.trip.route, async (route) => {
-  await mapLoaded();
+watch(
+  () => props.trip.route,
+  async (route) => {
+    await mapLoaded();
 
-  map.setPaintProperty("lines-layer", "line-opacity", LINE_OPACITY_EXPRESSION(route.id))
-  // map.setPaintProperty("stops-layer", "circle-stroke-opacity", STOP_OPACITY_EXPRESSION(route.id))
-  map.setPaintProperty("stops-layer", "circle-opacity", STOP_OPACITY_EXPRESSION(route.id))
-}, { immediate: true });
+    map.setPaintProperty(
+      "lines-layer",
+      "line-opacity",
+      LINE_OPACITY_EXPRESSION(route.id),
+    );
+    // map.setPaintProperty("stops-layer", "circle-stroke-opacity", STOP_OPACITY_EXPRESSION(route.id))
+    map.setPaintProperty(
+      "stops-layer",
+      "circle-opacity",
+      STOP_OPACITY_EXPRESSION(route.id),
+    );
+  },
+  { immediate: true },
+);
 
 watch(
   () => props.focusedStopIndex,
@@ -95,7 +108,7 @@ watch(
         easing,
       });
     }
-    
+
     const stop = trip?.stops[index];
     if (!stop || !trip) return;
     map.flyTo({
