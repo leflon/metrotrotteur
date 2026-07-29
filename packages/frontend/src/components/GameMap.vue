@@ -6,10 +6,10 @@ import {
     STOP_OPACITY_EXPRESSION,
 } from "@/lib/MapLibreExpressions";
 import type { GameTrip } from "@metroclavier/shared";
+import { Map as MapLibre} from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { onMounted, watch } from "vue";
 
-const {Map: MapLibre } = await import('maplibre-gl');
 
 const DEFAULT_CENTER = [2.333333, 48.859667] as [number, number];
 const DEFAULT_ZOOM = 12;
@@ -21,7 +21,7 @@ const props = defineProps<{
   angle: number;
 }>();
 
-let map: InstanceType<typeof MapLibre>;
+let map: MapLibre;
 
 let resolveMapReady: () => void;
 const mapReady = new Promise<void>((resolve) => {

@@ -181,14 +181,12 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <Suspense>
-    <game-map
+  <game-map
       :trip="state.trip"
       :geojson="map"
       :focusedStopIndex="state.currentStopIndex"
       :angle="trainAngle"
-    />
-  </Suspense>
+  />
   <Transition name="slide">
     <div class='exit-indicator' v-if='isExiting'>
       <span class='regular'>Quitter la partie</span>
