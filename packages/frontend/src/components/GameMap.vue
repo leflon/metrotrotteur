@@ -6,9 +6,13 @@ import {
     STOP_OPACITY_EXPRESSION,
 } from "@/lib/MapLibreExpressions";
 import type { GameTrip } from "@metroclavier/shared";
-import { Map as MapLibre} from "maplibre-gl";
+import { Map as MapLibre, setWorkerUrl } from "maplibre-gl";
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import "maplibre-gl/dist/maplibre-gl.css";
 import { onMounted, watch } from "vue";
+
+setWorkerUrl(workerUrl);
+
 
 
 const DEFAULT_CENTER = [2.333333, 48.859667] as [number, number];
