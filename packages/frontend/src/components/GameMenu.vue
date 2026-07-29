@@ -44,14 +44,14 @@ const tripsList = computed(() =>
       </div>
     </div>
     <div class="trips-list">
-      <div
+      <button
         v-for="trip in tripsList"
         class="trip"
         :class="{ selected: selectedTrip === trip.id }"
         @click="selectedTrip = trip.id"
       >
         {{ trip.destination }}
-      </div>
+      </button>
     </div>
     <button
       class="play"
@@ -103,15 +103,8 @@ const tripsList = computed(() =>
   flex-wrap: wrap;
   gap: 10px;
 }
-.trip {
-  background: var(--blue);
-  color: white;
-  padding: 4px 8px;
-  cursor: pointer;
-  &:hover,
-  &.selected {
-    background: var(--black);
-  }
+.trip.selected {
+  background: var(--black);
 }
 .play {
   display: block;

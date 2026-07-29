@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref, type ComputedRef } from "vue";
 import GameMap from "./GameMap.vue";
 import GameInput from "./GameInput.vue";
 import InGameStats from "./InGameStats.vue";
@@ -8,7 +8,7 @@ import { type GameTrip, type GameTransfer } from "@metroclavier/shared";
 import { api } from "@/lib/api";
 import type { GeoJSONSource } from "maplibre-gl";
 import type { GameStats } from "@/types/GameStats";
-import { calculateSlidingWPM } from "@/lib/utils";
+import { angle, calculateSlidingWPM } from "@/lib/utils";
 
 const emit = defineEmits<{
   end: [];
@@ -49,6 +49,27 @@ const currentTransfers = computed<GameTransfer[]>(() => {
   // Don't return any transfer if only the current trip is available.
   if (state.value.possibleTransfers.length === 1) return [];
   return state.value.possibleTransfers;
+});
+
+const trainAngle: ComputedRef<number> = computed<number>(() => {
+  const nextStop = state.value.trip.stops[state.value.currentStopIndex + 1];
+  if (!currentStop.value || !nextStop) return trainAngle.value ?? 0;
+  
+  const currentCoords = [currentStop.value.longitude, currentStop.value.latitude];
+  const nextCoords = [nextStop.longitude, nextStop.latitude];
+  
+  const a = angle(currentCoords, nextCoords);
+
+  const previousAngle = trainAngle.value;
+  if (!previousAngle) return a;
+
+  console.log(a);
+  const plus360 = a + 360;
+  const d1 = Math.abs(previousAngle - a);
+  const d2 = Math.abs(previousAngle - plus360);
+  const shortest = Math.min(d1, d2);
+
+  return shortest === d1 ? a : plus360;
 });
 
 const setPossibleTransfers = () => {
@@ -131,6 +152,7 @@ const computeAndSaveWPM = () => {
 
 const displayGameStats = () => {
   state.value.status = "stats";
+  state.value.currentStopIndex = -1;
   stats.value.duration = Date.now() - stats.value.gameStart.getTime();
 };
 
@@ -143,6 +165,7 @@ onUnmounted(() => clearInterval(wpmInterval));
     :trip="state.trip"
     :geojson="map"
     :focusedStopIndex="state.currentStopIndex"
+    :angle="trainAngle"
   />
   <div class="game-center-overlay" v-if="state.status === 'playing'">
     <in-game-stats

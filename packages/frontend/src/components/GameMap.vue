@@ -17,6 +17,7 @@ const props = defineProps<{
   geojson: GeoJSONSource;
   trip: GameTrip;
   focusedStopIndex: number;
+  angle: number;
 }>();
 
 let map: MapLibre;
@@ -35,7 +36,7 @@ onMounted(async () => {
     style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
     zoom: DEFAULT_ZOOM,
     center: DEFAULT_CENTER,
-    // interactive: false,
+    interactive: false
   });
 
   map.on("load", () => {
@@ -116,6 +117,7 @@ watch(
       essential: true,
       duration: 1000,
       easing,
+      minZoom: 15
     });
   },
   { immediate: true },
@@ -123,19 +125,29 @@ watch(
 </script>
 
 <template>
-  <div id="game-map"></div>
+  <div class='map-container'>
+    <div id="game-map"></div>
+    <div class='cute-train'>
+      <img src='/train.png' width="48" :style="{ 'transform': `rotate(${props.angle - 90}deg)` }" />
+    </div>
+  </div>
 </template>
 
 <style>
+.map-container,
 #game-map {
   height: 100%;
 }
 
-path.focused {
-  transform-origin: center center;
-  transform-box: fill-box;
-  stroke: black;
-  fill: white;
-  scale: 1.5;
+.cute-train {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  & img {
+    transition: transform .3s ease 0.8s;
+  }
 }
+
+
 </style>
