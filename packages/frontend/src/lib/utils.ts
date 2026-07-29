@@ -1,3 +1,5 @@
+import type { GameStats } from "@/types/GameStats";
+
 export function calculateSlidingWPM(
   timedChars: Date[],
   threshold: number = 3_000,
@@ -9,6 +11,14 @@ export function calculateSlidingWPM(
 
   const words = chars / 5;
   const wpt = words / threshold;
+  const wpm = Math.floor(wpt * 60_000);
+  return wpm;
+}
+
+export function calculateStopWPM(stop: GameStats['visitedStops'][number]) {
+  const { stop: { name }, duration } = stop;
+  const words = name.length / 5;
+  const wpt = words / duration;
   const wpm = Math.floor(wpt * 60_000);
   return wpm;
 }

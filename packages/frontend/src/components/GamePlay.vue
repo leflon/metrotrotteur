@@ -31,7 +31,6 @@ const state = ref({
 
 const stats = ref<GameStats>({
   visitedStops: [],
-  wpmHistory: [],
   timedCorrectChars: [],
   duration: 0,
   gameStart: new Date()
@@ -63,7 +62,6 @@ const trainAngle: ComputedRef<number> = computed<number>(() => {
   const previousAngle = trainAngle.value;
   if (!previousAngle) return a;
 
-  console.log(a);
   const plus360 = a + 360;
   const d1 = Math.abs(previousAngle - a);
   const d2 = Math.abs(previousAngle - plus360);
@@ -100,7 +98,6 @@ const setPossibleTransfers = () => {
           ? -1
           : parseInt(a.route.name) - parseInt(b.route.name),
     );
-  console.table(possible);
   state.value.possibleTransfers = possible;
 };
 
@@ -113,7 +110,6 @@ const onCorrect = () => {
   
   if (state.value.currentStopIndex === state.value.trip.stops.length - 1) {
     displayGameStats();
-    clearInterval(wpmInterval);
   } else {
     state.value.currentStopIndex++;
     state.value.currentStopStart = new Date();
@@ -139,15 +135,8 @@ const onPlayAgain = () => {
   emit('end');
 }
 
-let wpmInterval: number;
 const startGame = () => {
   setPossibleTransfers();
-  wpmInterval = setInterval(computeAndSaveWPM, 3000);
-};
-
-const computeAndSaveWPM = () => {
-  const wpm = calculateSlidingWPM(stats.value.timedCorrectChars);
-  stats.value.wpmHistory.push({ value: wpm, time: new Date() });
 };
 
 const displayGameStats = () => {
@@ -157,7 +146,6 @@ const displayGameStats = () => {
 };
 
 onMounted(startGame);
-onUnmounted(() => clearInterval(wpmInterval));
 </script>
 
 <template>

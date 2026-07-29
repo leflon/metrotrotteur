@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { formatDuration, splitDuration } from "@/lib/utils";
+import { api } from "@/lib/api";
+import { calculateStopWPM, formatDuration, splitDuration } from "@/lib/utils";
 import type { GameStats } from "@/types/GameStats";
 import {
   LineController,
@@ -26,14 +27,12 @@ const headsign = computed(
 
 const formattedClock = computed(() => {
   const time = props.stats.duration;
-  const [minutes, seconds] = splitDuration(time);
-
-  const sSec = `${seconds}`.padStart(2, "0");
-  const sMin = `${minutes}`.padStart(2, "0");
-  return `${sMin}:${sSec}`;
+  return formatDuration(time);
 });
 
-const wpmValues = computed(() => props.stats.wpmHistory.map((_) => _.value));
+const wpmValues = computed(() => props.stats.visitedStops.map(calculateStopWPM));
+const wpmLabels = computed(() => props.stats.visitedStops.map(s => s.stop.name));
+
 const maxWPM = computed(() => Math.max(...wpmValues.value));
 const avgWPM = computed(() =>
   Math.floor(
@@ -62,19 +61,15 @@ onMounted(() => {
     LineElement,
     Tooltip,
   );
-  const history = toRaw(props.stats.wpmHistory);
-  const start = toRaw(props.stats.gameStart).getTime();
-  const data = history.map((e) => e.value);
-  const labels = history.map((e) => formatDuration(e.time.getTime() - start));
   new Chart(canvas.value!, {
     type: "line",
     data: {
-      labels,
+      labels: toRaw(wpmLabels.value),
       yLabels: undefined,
       datasets: [
         {
           label: "Mots Par Minute (WPM)",
-          data,
+          data: toRaw(wpmValues.value),
           borderColor: "#FFBE00",
           pointBackgroundColor: "#FFBE00",
           borderCapStyle: "round",
@@ -127,7 +122,7 @@ onMounted(() => {
             <div class="stop-duration">{{ formatDuration(info.duration) }}</div>
             <div class="stop-wpm">
               {{
-                Math.floor((info.stop.name.length / 5 / info.duration) * 60_000)
+                calculateStopWPM(info)
               }}
               WPM
             </div>

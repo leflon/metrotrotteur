@@ -6,10 +6,6 @@ export type GameStats = {
     route: GameTrip['route'];
     duration: number;
   }[];
-  wpmHistory: {
-    value: number;
-    time: Date;
-  }[];
   timedCorrectChars: Date[];
   duration: number;
   gameStart: Date;
