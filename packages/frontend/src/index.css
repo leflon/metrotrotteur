@@ -1,0 +1,27 @@
+@font-face {
+  font-family: 'Parisine';
+  font-weight: 400;
+  src: url('/fonts/parisine-regular.otf');
+}
+
+@font-face {
+  font-family: 'Parisine';
+  font-weight: 600;
+  src: url('/fonts/parisine-bold.otf');
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  height: 100%;
+}
+
+.debug {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 999999;
+  background: #0004;
+  border: 1px dashed red;
+}

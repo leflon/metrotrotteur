@@ -96,17 +96,19 @@ watch(guess, (value) => {
           <div class='transfer-headsign'>{{transfers[transferIndex]?.destination}}</div>
         </div>
       </Transition>
-      <div
-        class="headsign"
-        :style="{
-          '--bg': '#' + trip.route.color,
-          '--fg': '#' + trip.route.textColor,
-        }"
-      >
-        <img :src="trip.route.picto" width="24" />
-        {{ trip.destination }}
+      <div class='input-container'>
+        <div
+          class="headsign"
+          :style="{
+            '--bg': '#' + trip.route.color,
+            '--fg': '#' + trip.route.textColor,
+          }"
+        >
+          <img :src="trip.route.picto" width="24" />
+          {{ trip.destination }}
+        </div>
+        <div class="guess-container" v-html="formattedGuess"></div>
       </div>
-      <div class="guess-container" v-html="formattedGuess"></div>
     </div>
     <input
       class="catch-input"
@@ -120,12 +122,7 @@ watch(guess, (value) => {
 
 <style>
 .game-input {
-  position: fixed;
-  z-index: 9999999;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: white;
+  position: relative;
 }
 
 input.catch-input {
@@ -139,24 +136,28 @@ input.catch-input {
 
 .visible-container {
   width: max-content;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .transfer-container {
-  position: absolute;
+  --height: 45px;
+  box-sizing: border-box;
+  z-index: -1;
   width: max-content;
+  height: var(--height);
+  padding: 0 30px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 5px;
-  top: -20px;
-  left: 50%;
-  transform: translate(-50%,-100%);
   background: #fff;
   border-radius: 10em;
-  padding: 10px 30px;
   font-family: Arial;
   border: 2px solid var(--color);
-  transition: all .3s ease;
+  transition: all .5s ease;
+  margin-bottom: 10px;
   
   & .key-indicator {
     background: #222;
@@ -171,10 +172,15 @@ input.catch-input {
 .transfer-enter-from,
 .transfer-leave-to {
   opacity: 0;
-  transform: translate(-50%, -50%);
+  margin-bottom: calc( -1 * var(--height));
+}
+
+.input-container {
+  width: max-content;
 }
 
 .headsign {
+  z-index: 20;
   display: flex;
   justify-content: center;
   align-items: center;

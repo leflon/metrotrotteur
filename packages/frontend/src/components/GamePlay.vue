@@ -115,16 +115,28 @@ onMounted(async () => {
     :geojson="map"
     :focusedStopIndex="state.currentStopIndex"
   />
-  <in-game-stats
-    :start="state.startTime"
-    :correctCharCount="state.correctCharCount"
-  />
-  <game-input
-    :currentStop="currentStopName"
-    :trip="state.trip"
-    :transfers="currentTransfers"
-    @correct="onCorrect"
-    @transfer="onTransfer"
-    @correctChar="onCorrectChar"
-  />
+  <div class='game-center-overlay'>
+    <in-game-stats
+      :start="state.startTime"
+      :correctCharCount="state.correctCharCount"
+    />
+    <game-input
+      :currentStop="currentStopName"
+      :trip="state.trip"
+      :transfers="currentTransfers"
+      @correct="onCorrect"
+      @transfer="onTransfer"
+      @correctChar="onCorrectChar"
+    />
+  </div>
 </template>
+
+<style scoped>
+.game-center-overlay {
+  position: fixed;
+  z-index: 999999;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+</style>

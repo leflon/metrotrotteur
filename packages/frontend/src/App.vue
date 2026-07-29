@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import './index.css';
 import { computed, onMounted, ref } from "vue";
 import GameMenu from "./components/GameMenu.vue";
 import GamePlay from "./components/GamePlay.vue";
@@ -44,13 +45,7 @@ onMounted(async () => {
   </template>
   <div class="loading" v-else>Chargement des ressources...</div>
 </template>
-<style>
-html,
-body,
-#app {
-  margin: 0;
-  height: 100%;
-}
+<style scoped>
 .loading {
   position: fixed;
   width: 100%;
@@ -62,13 +57,5 @@ body,
   display: flex;
   justify-content: center;
   align-items: center;
-}
-.debug {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 999999;
-  background: #0004;
-  border: 1px dashed red;
 }
 </style>
