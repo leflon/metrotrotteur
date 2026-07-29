@@ -69,6 +69,7 @@ onUnmounted(() => clearInterval(intervalId));
   font-family: "Parisine";
   font-weight: 600;
   font-size: 14pt;
+  overflow: visible;
 
   &:before {
     content: attr(data-label);
@@ -81,10 +82,11 @@ onUnmounted(() => clearInterval(intervalId));
   }
 
   &:not(:last-child):after {
+    z-index: 10;
     --width: 2px;
     content: '';
     position: absolute;
-    right: 0;
+    right: calc(-1 * var(--width) / 2);
     top: 50%;
     width: var(--width);
     height: 50%;
@@ -92,8 +94,5 @@ onUnmounted(() => clearInterval(intervalId));
     border-radius: 10em;
     transform: translate(0, -50%);
   }
-}
-.clock-sep {
-  padding: 0 1px;
 }
 </style>

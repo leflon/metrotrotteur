@@ -177,6 +177,7 @@ input.catch-input {
 
 .input-container {
   width: max-content;
+  box-shadow: 0px -9px 22px 12px rgba(0,0,0,0.1);
 }
 
 .headsign {
@@ -243,6 +244,10 @@ input.catch-input {
   & .next {
     --color: #fff8;
   }
+}
+
+.game-input:has(input:not(:focus)) .current:after {
+  display: none;
 }
 
 @keyframes caret {
