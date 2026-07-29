@@ -5,15 +5,17 @@ import type { GameRoute, GameStop } from "@metroclavier/shared";
 
 console.log('-- Generating Map GeoJSON --')
 console.time('Map');
-const keyGen = (id1: string, id2: string) => {
+const keyGen = (stop1: GameStop, stop2: GameStop, route: string) => {
+  const id1 = stop1.id;
+  const id2 = stop2.id;
   const [min, max] = [id1, id2].sort();
-  return `${min}-${max}`;
+  return `${route}:${min}-${max}`;
 }
 
 const routes: Record<string, GeoJSONRoute> = {};
 const stops: Record<string, GeoJSONStop> = {};
 
-type Route = GeoJSONStop['properties']['routes'][number];
+type Route = Omit<GameRoute, 'trips'>;
 function featureFromStop(stop: GameStop, route: Route, trip: string): GeoJSONStop {
   return {
     type: 'Feature',
@@ -49,8 +51,11 @@ for (const trip of Object.values(GAME_TRIPS)) {
     }
 
     // Add segment
-    const key = keyGen(stop1.id, stop2.id);
-    if (key in routes) continue;
+    const key = keyGen(stop1, stop2, trip.route.id);
+    if (key in routes) {
+      console.log(key, 'already');
+      continue;
+    };
     routes[key] = {
       type: 'Feature',
       geometry: {
