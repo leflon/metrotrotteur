@@ -162,18 +162,25 @@ watch(() => state.value.trip, () => {
 }, { immediate: true });
 
 let exitTimeout: number | undefined;
-const onKeyDown = (e: KeyboardEvent) => {
-  if (e.key !== 'Escape' || exitTimeout !== undefined) return;
+const startExit = () => {
   isExiting.value = true;
   exitTimeout = setTimeout(() => {
     emit('end');
   }, 1500);
 }
-const onKeyUp = (e: KeyboardEvent) => {
-  if (e.key !== 'Escape') return;
+const stopExit = () => {
   clearTimeout(exitTimeout);
   exitTimeout = undefined;
   isExiting.value = false;
+}
+
+const onKeyDown = (e: KeyboardEvent) => {
+  if (e.key !== 'Escape' || exitTimeout !== undefined) return;
+  startExit();
+}
+const onKeyUp = (e: KeyboardEvent) => {
+  if (e.key !== 'Escape') return;
+  stopExit();
 }
 
 onMounted(() => {
@@ -199,14 +206,20 @@ onUnmounted(() => {
       :angle="trainAngle"
       :style="{ height: `calc(100% - ${overlayOffset}px)` }"
   />
-  <Transition name="slide">
-    <div class='exit-indicator' v-if='isExiting'>
-      <span class='regular'>Quitter la partie</span>
-      <div class='overlay-wrapper'>
-        <div>Quitter la partie</div>
-      </div>
+  <button 
+    class='exit-indicator' 
+    :class="{exiting: isExiting }"
+    @mousedown.prevent="startExit"
+    @pointerdown.prevent="startExit"
+    @mouseup.prevent="stopExit"
+    @pointerup.prevent="stopExit"
+    @dblclick.prevent
+  >
+    <span class='regular'>Quitter la partie</span>
+    <div class='overlay-wrapper'>
+      <div>Quitter la partie</div>
     </div>
-  </Transition>
+  </button>
   <div 
     class="game-center-overlay" 
     v-if="state.status === 'playing'"
@@ -232,6 +245,7 @@ onUnmounted(() => {
 
 <style scoped>
 .exit-indicator {
+  all: unset;
   --width: 120px;
   position: fixed;
   z-index: 99999;
@@ -245,15 +259,17 @@ onUnmounted(() => {
   background: #fffe;
   border-radius: 10px;
   overflow: hidden;
+  cursor: pointer;
   & .overlay-wrapper {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
+    width: 0;
     height: 100%;
     overflow: hidden;
-    animation: fill-in 1.5s linear;
+    transition: width .2s ease;
   }
+  
   & .overlay-wrapper > div {
     white-space: pre;
     color: white;
@@ -265,16 +281,11 @@ onUnmounted(() => {
     align-items: center;
     background: var(--blue);
   }
-}
-.slide-enter-from,
-.slide-leave-to {
-  transform: translateX(calc(-20px + -100%));
-  opacity: 0;
-  filter: blur(15px);
-}
 
-@keyframes fill-in {
-  from { width: 0; }
+  &.exiting .overlay-wrapper {
+    width: 100%;
+    transition: width 1.5s linear;
+  }
 }
 
 .game-center-overlay {

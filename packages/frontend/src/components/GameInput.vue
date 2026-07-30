@@ -133,6 +133,7 @@ watch(guess, (value) => {
 }
 
 input.catch-input {
+  z-index: 100;
   position: absolute;
   top: 0;
   left: 0;

@@ -2,7 +2,7 @@
 import type { GameParams } from "@/types/GameParams";
 import type { GameRoutes } from "@metroclavier/shared";
 import ButtonGrid from "./shared/ButtonGrid.vue";
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 
 const TRANSPORT_MODES = [
   {
@@ -58,6 +58,7 @@ const tripOptions = computed(() => !selectedRoute.value ? [] :
 );
 
 onMounted(() => params.value.trip = '');
+watch(tripOptions, (opts) => params.value.trip = opts[0]?.value ?? '');
 </script>
 
 <template>
