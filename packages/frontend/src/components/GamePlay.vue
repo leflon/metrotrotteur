@@ -209,11 +209,10 @@ onUnmounted(() => {
   <button 
     class='exit-indicator' 
     :class="{exiting: isExiting }"
-    @mousedown.prevent="startExit"
-    @pointerdown.prevent="startExit"
-    @mouseup.prevent="stopExit"
-    @pointerup.prevent="stopExit"
+    @mousedown.prevent
+    @pointerdown.prevent
     @dblclick.prevent
+    @click="emit('end')"
   >
     <span class='regular'>Quitter la partie</span>
     <div class='overlay-wrapper'>
@@ -282,6 +281,9 @@ onUnmounted(() => {
     background: var(--blue);
   }
 
+  &.exiting {
+    transform: scale(.95);
+  }
   &.exiting .overlay-wrapper {
     width: 100%;
     transition: width 1.5s linear;

@@ -286,7 +286,7 @@ input.catch-input {
     animation: focus-cta var(--animation-duration) var(--animation-timing) infinite alternate;
 
     &:after {
-      content: 'Appuyez ici!';
+      content: 'Appuyez ici !';
       background: red;
       color: white;
       top: -11px;
