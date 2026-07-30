@@ -148,6 +148,13 @@ const displayGameStats = () => {
   stats.value.duration = Date.now() - stats.value.gameStart.getTime();
 };
 
+const overlayOffset = ref<number>(0);
+const syncViewport = () => {
+  const vv = window.visualViewport;
+  if (!vv) return;
+  overlayOffset.value = window.innerHeight - (vv.height + vv.offsetTop);
+}
+
 watch(() => state.value.trip, () => {
   if (props.params.easyMode) {
     state.value.trip.stops = convertStopsToEasy(state.value.trip.stops);
@@ -173,10 +180,14 @@ onMounted(() => {
   startGame();
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
+  window.visualViewport?.addEventListener('resize', syncViewport);
+// window.visualViewport?.addEventListener('scroll', syncToVisualViewport);
+
 });
 onUnmounted(() => {
   window.removeEventListener('keydown', onKeyDown);
   window.removeEventListener('keyup', onKeyUp);
+  window.visualViewport?.removeEventListener('resize', syncViewport);
 });
 </script>
 
@@ -186,6 +197,7 @@ onUnmounted(() => {
       :geojson="map"
       :focusedStopIndex="state.currentStopIndex"
       :angle="trainAngle"
+      :style="{ height: `calc(100% - ${overlayOffset}px)` }"
   />
   <Transition name="slide">
     <div class='exit-indicator' v-if='isExiting'>
@@ -195,7 +207,11 @@ onUnmounted(() => {
       </div>
     </div>
   </Transition>
-  <div class="game-center-overlay" v-if="state.status === 'playing'">
+  <div 
+    class="game-center-overlay" 
+    v-if="state.status === 'playing'"
+    :style='{ transform: `translateY(${-overlayOffset}px)` }'
+  >
     <in-game-stats
       :start="stats.gameStart"
       :timedChars="stats.timedCorrectChars"
@@ -284,12 +300,6 @@ onUnmounted(() => {
   justify-content: center;
   align-items: center;
   backdrop-filter: blur(3px);
-}
-
-@media screen and (max-width: 540px) {
-  .game-center-overlay {
-    bottom: 0;
-  }
 }
 </style>
 

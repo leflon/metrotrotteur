@@ -280,7 +280,8 @@ input.catch-input {
 
 @media screen and (max-width: 540px) {
   .input-container, .visible-container, .game-input {
-    width: 100%;
+    width: 98%;
+    margin: 0 auto;
   }
   .guess-container {
     font-size: 14pt;
