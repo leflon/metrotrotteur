@@ -40,7 +40,13 @@ const formattedGuess = computed(() => {
 });
 
 onMounted(() => {
-  input.value?.focus();
+  const isMobileDevice = /Mobi/i.test(window.navigator.userAgent)
+  // Mobile devices won't open the virtual keyboard automatically on focus.
+  // Although the input would be focused, the keyboard doesn't show up, that is confusing UX.
+  // Since we have no proper way to *force* the keyboard to open, it's best to not focus the input at all
+  // to let the CSS CTA show up and properly prompt the users to tap the input.
+  if (!isMobileDevice)
+    input.value?.focus();
 });
 
 const FORBIDDEN_KEYS = ['ArrowLeft', 'ArrowRight', 'Home', 'End'];
@@ -98,7 +104,7 @@ watch(guess, (value) => {
           <div class='transfer-headsign'>{{transfers[transferIndex]?.destination}}</div>
         </div>
       </Transition>
-      <div class='input-container'>
+      <div open class='input-container'>
         <input
           class="catch-input"
           ref="input"
@@ -109,6 +115,7 @@ watch(guess, (value) => {
           autocorrect="off"
           autocapitalize="off"
           spellcheck="false"
+          autofocus
           data-form-type="other"
         />
         <div
@@ -133,7 +140,7 @@ watch(guess, (value) => {
 }
 
 input.catch-input {
-  z-index: 100;
+  z-index: 1000;
   position: absolute;
   top: 0;
   left: 0;
@@ -266,8 +273,38 @@ input.catch-input {
   }
 }
 
-.game-input:has(input:not(:focus)) .current:after {
-  display: none;
+.game-input:has(input:not(:focus)) {
+  & .current:after {
+    display: none;
+  }
+
+  & .guess-container {
+    --animation-duration: 1.2s;
+    --animation-timing: cubic-bezier(.7,.02,.07,1);
+    z-index: 100; /* For the outline to standout */
+    outline: 4px solid red;
+    outline-offset: 10px;
+    animation: focus-cta var(--animation-duration) var(--animation-timing) infinite alternate;
+
+    &:after {
+      content: 'Appuyez ici!';
+      background: red;
+      color: white;
+      top: -11px;
+      left: -11px;
+      padding: 2px 8px;
+      font: bold 10pt 'Parisine';
+      position: absolute;
+      animation: focus-cta-label var(--animation-duration) var(--animation-timing) infinite alternate;
+    }
+  }
+}
+
+@keyframes focus-cta {
+  to { outline-offset: 0px;}
+}
+@keyframes focus-cta-label {
+  to { top: 0; left: 0;}
 }
 
 @keyframes caret {
