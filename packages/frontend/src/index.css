@@ -15,6 +15,14 @@
   --yellow: #FFBE00;
   --white: white;
   --black: black;
+  --grey: #ccc;
+  --shadow: 0 8px 20px #0b3d3024;
+  --border: 1px solid #d6e0da; 
+  --radius: 12px;
+  --xs-radius: 6px;
+
+  --large: 1024px;
+  --small: 540px;
 }
 
 html,
@@ -25,8 +33,10 @@ body,
 }
 
 * {
-  box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  box-sizing: border-box;
+  position: relative;
 }
 
 .debug {
@@ -38,38 +48,80 @@ body,
   border: 1px dashed red;
 }
 
-button {
-  touch-action: manipulation;
-  user-select: none;
-  appearance: none;
-  border: none;
+h1 {
+  font: bold 22pt 'Parisine';
   background: var(--blue);
   color: var(--white);
-  font: 14pt 'Parisine';
-  padding: 4px 8px;
-  cursor: pointer;
-  &:focus {
-    outline: 3px solid var(--yellow);
-    outline-offset: 3px;
-  }
-  &:active {
-    transform: translateY(1px);
-  }
+  width: max-content;
+  padding: 2px 8px;
 }
 
-button.toggle-btn {
+h2 {
+  font: bold 14pt 'Parisine';
+}
+
+button {
+  --text: var(--black);
+  --color: var(--grey);
+  --focus-color: var(--grey);
+  
+  touch-action: manipulation;
+  appearance: none;
+  cursor: pointer;
+  
+  border: 2px solid var(--color);
+  background: color-mix(in hsl, var(--color) 30%, transparent 100%);
+  color: var(--text);
+  padding: 5px 16px;
+  border-radius: var(--xs-radius);
   display: inline-flex;
+  justify-content: center;
   align-items: center;
-  gap: 5px;
+  outline-color: var(--blue);
+  gap: 10px;
+
+  font: 10pt 'Parisine';
+
+  & > img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+  }
+
+  &[disabled] {
+    opacity: .4;
+    cursor: default;
+  }
+
+  transition: transform .15s ease, background .3s ease;
+  &:not([disabled]):hover {
+    transform: translateY(1px);
+  }
+  &:not([disabled]):active {
+    transform: scale(.95) translateY(1px);
+  }
+
+  &[data-selected='true'], &.toggle[data-checked='true'] {
+    background: color-mix(in hsl, var(--focus-color) 50%, transparent);
+    border-color: var(--focus-color)
+  }
+}
+  
+button.big {
+  background: var(--color);
+  font: bold 18pt 'Parisine';
+  &:hover { transform: scale(.95);}
+  &:active { transform: scale(.9);}
+}
+
+button.toggle {
   &:before {
     content: '';
-    font-size: 12pt;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    display: block;
     width: 16px;
     height: 16px;
-    background: #fff4;
+    background: var(--color);
   }
-  &[data-value='true']:before { content: '✓'}
+
+  &[data-checked='true']:before { content: '✓'; }
 }

@@ -135,7 +135,7 @@ onMounted(() => {
             <div data-label="Maximum">{{ maxWPM }}<span>WPM</span></div>
           </div>
           <div class="next-cta">
-            <button @click="onPlayAgain">Rejouer</button>
+            <button @click="onPlayAgain" class='big'>Rejouer</button>
           </div>
         </div>
       </div>

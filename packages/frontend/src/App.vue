@@ -4,7 +4,7 @@ import {
     type GameTrip,
 } from "@metroclavier/shared";
 import { onMounted, ref } from "vue";
-import GameMenu from "./components/GameMenu.vue";
+import GameParamsMenu from "./components/GameParamsMenu.vue";
 import GamePlay from "./components/GamePlay.vue";
 import './index.css';
 import { api } from "./lib/api";
@@ -16,15 +16,19 @@ const GAME_GEOJSON = ref<any>({} as any);
 
 const appState = ref<"menu" | "playing">("menu");
 
-const gameParameters = ref({
-  trip: null as GameTrip | null,
-  params: { easyMode: false }
+const gameParameters = ref<GameParams>({
+  mode: 'metro',
+  trip: '',
+  easyMode: false
 });
 
-const onPlay = async (trip: string, params: GameParams) => {
-  const tripData = await api.get(`trip/${trip}`) as GameTrip;
-  gameParameters.value.trip = tripData;
-  gameParameters.value.params = params;
+const gameData = ref({
+  trip: null as GameTrip | null
+});
+
+const onPlay = async () => {
+  const tripData = await api.get(`trip/${gameParameters.value.trip}`) as GameTrip;
+  gameData.value.trip = tripData;
   appState.value = "playing";
 };
 
@@ -46,13 +50,18 @@ onMounted(async () => {
     <div class='app-home' v-if="appState === 'menu'">
       <img class='splash' src='/splash.webp'></img>
       <h1><span class='clavi'>Clavi</span><span class='metro'>Métro</span></h1>
-      <game-menu :routes="GAME_ROUTES" @play="onPlay" />
+      <game-params-menu 
+        gamemode='Solo'
+        v-model='gameParameters'
+        :routes="GAME_ROUTES" 
+        @play="onPlay" 
+      />
     </div>
     <game-play 
       v-if="appState === 'playing'" 
-      :trip='gameParameters.trip!' 
+      :trip='gameData.trip!' 
       :map="GAME_GEOJSON" 
-      :params="gameParameters.params!"
+      :params="gameParameters"
       @end="onEnd" 
     />
   </template>

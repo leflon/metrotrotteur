@@ -71,3 +71,7 @@ export function convertStopsToEasy(stops: GameStop[]): GameStop[] {
       .replace(/[\u0300-\u036f]/g, ''),
   }));
 }
+
+export function srcset(name: string) {
+  return `/images/1x/${name}.webp 1x, /images/2x/${name}.webp 2x, /images/3x/${name}.webp 3x`;
+}
