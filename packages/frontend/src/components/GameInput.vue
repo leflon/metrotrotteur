@@ -115,7 +115,6 @@ watch(guess, (value) => {
           autocorrect="off"
           autocapitalize="off"
           spellcheck="false"
-          autofocus
           data-form-type="other"
         />
         <div
