@@ -5,6 +5,7 @@ import {
     STOP_CIRCLE_STROKE_WIDTH_EXPRESSION,
     STOP_OPACITY_EXPRESSION,
 } from "@/lib/MapLibreExpressions";
+import { resources } from "@/stores/resources";
 import type { GameTrip } from "@metroclavier/shared";
 import { Map as MapLibre, setWorkerUrl } from "maplibre-gl";
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
@@ -17,7 +18,6 @@ const DEFAULT_CENTER = [2.333333, 48.859667] as [number, number];
 const DEFAULT_ZOOM = 12;
 
 const props = defineProps<{
-  geojson: any; // TODO: get the right type
   trip: GameTrip;
   focusedStopIndex: number;
   angle: number;
@@ -45,7 +45,7 @@ onMounted(async () => {
   map.on("load", () => {
     map.addSource("map-geojson", {
       type: "geojson",
-      data: props.geojson,
+      data: resources.GAME_GEOJSON,
     });
     map.addLayer({
       id: "lines-layer",

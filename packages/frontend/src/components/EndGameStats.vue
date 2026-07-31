@@ -93,15 +93,15 @@ onMounted(() => {
 
 <template>
   <Transition name="stats">
-    <div class="end-game-stats-container">
-      <div class="header">
+    <div class="end-game-stats-container flex column">
+      <div class="header flex">
         <div class="header-trip">{{ headsign }}</div>
         <div class="header-clock">{{ formattedClock }}</div>
       </div>
-      <div class="content">
+      <div class="content flex">
         <div class="trip-breakdown">
           <div
-            class="trip-stop"
+            class="trip-stop flex alc"
             v-for="(info, index) in stats.visitedStops"
             :class="{
               'is-transfer': isTransfer(index),
@@ -127,10 +127,10 @@ onMounted(() => {
             </div>
           </div>
         </div>
-        <div class="stats">
+        <div class="stats flex column">
           <div class="stat-title">Mots Par Minute (WPM)</div>
           <canvas class="wpm-chart" ref="chart"></canvas>
-          <div class="figures">
+          <div class="figures flex">
             <div data-label="Moyenne">{{ avgWPM }}<span>WPM</span></div>
             <div data-label="Maximum">{{ maxWPM }}<span>WPM</span></div>
           </div>
@@ -159,15 +159,12 @@ onMounted(() => {
   box-sizing: border-box;
   box-shadow: 0px 0px 10px #4444;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
   transition: 0.3s ease;
 }
 
 .header {
   position: inherit;
   box-sizing: border-box;
-  display: flex;
   justify-content: space-between;
   align-items: start;
   border-bottom: 8px solid var(--blue);
@@ -196,7 +193,6 @@ onMounted(() => {
   box-sizing: border-box;
   flex: 1;
   overflow: hidden;
-  display: flex;
 }
 
 .trip-breakdown {
@@ -209,8 +205,6 @@ onMounted(() => {
 
 .trip-stop {
   position: relative;
-  display: flex;
-  align-items: center;
   gap: 10px;
   padding: 5px 0;
   margin: 0 10px;
@@ -300,8 +294,6 @@ onMounted(() => {
 .stats {
   width: 40%;
   height: 100%;
-  display: flex;
-  flex-direction: column;
   padding: 10px;
   & .next-cta {
     align-self: flex-end;
@@ -321,7 +313,6 @@ onMounted(() => {
 }
 
 .figures {
-  display: flex;
   gap: 10px;
   margin: 10px 0;
 

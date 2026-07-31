@@ -1,117 +1,97 @@
 <script setup lang="ts">
-import {
-    type GameRoutes,
-    type GameTrip,
-} from "@metroclavier/shared";
-import { onMounted, ref } from "vue";
-import GameParamsMenu from "./components/GameParamsMenu.vue";
-import GamePlay from "./components/GamePlay.vue";
-import './index.css';
+import { computed, onMounted, ref } from "vue";
+import "./index.css";
+import { RouterView } from "vue-router";
 import { api } from "./lib/api";
-import type { GameParams } from './types/GameParams';
+import { resources } from "./stores/resources";
 
-const GAME_ROUTES = ref<GameRoutes>({});
-// TODO: get the right type.
-const GAME_GEOJSON = ref<any>({} as any);
-
-const appState = ref<"menu" | "playing">("menu");
-
-const gameParameters = ref<GameParams>({
-  mode: 'metro',
-  trip: '',
-  easyMode: false
-});
-
-const gameData = ref({
-  trip: null as GameTrip | null
-});
-
-const onPlay = async () => {
-  const tripData = await api.get(`trip/${gameParameters.value.trip}`) as GameTrip;
-  gameData.value.trip = tripData;
-  appState.value = "playing";
-};
-
-const onEnd = () => {
-  appState.value = "menu";
-};
+const N_RESOURCES_TO_DOWNLOAD = 2;
+const currentDownload = ref<number>(0);
 
 onMounted(async () => {
   const routes = await api.get('routes');
-  GAME_ROUTES.value = routes as GameRoutes;
-
+  resources.GAME_ROUTES = routes;
+  currentDownload.value++;
+  
   const map = await api.get('map.json');
-  GAME_GEOJSON.value = map as any;
+  currentDownload.value++;
+  resources.GAME_GEOJSON = map;
+
+  // Let the progress bar move before shutting down the loading indicator
+  setTimeout(() => currentDownload.value = -1, 300);
 });
+
+const progressWidth = computed(
+  () =>
+    Math.floor((currentDownload.value / N_RESOURCES_TO_DOWNLOAD) * 100) + "%",
+);
 </script>
 
 <template>
-  <template v-if="GAME_ROUTES">
-    <div class='app-home' v-if="appState === 'menu'">
-      <img class='splash' src='/splash.webp'></img>
-      <h1><span class='clavi'>Clavi</span><span class='metro'>Métro</span></h1>
-      <game-params-menu 
-        gamemode='Solo'
-        v-model='gameParameters'
-        :routes="GAME_ROUTES" 
-        @play="onPlay" 
-      />
+  <Transition name="fade">
+    <div
+      v-if="currentDownload >= 0"
+      class="loading-indicator cloud flex column center"
+      :style="{ '--progress': progressWidth }"
+    >
+      <div class="text flex alc">
+        <div>Chargement des ressources</div>
+        <div class="spinner"></div>
+      </div>
+      <div class="progress">
+        <div class="progress-fill"></div>
+      </div>
     </div>
-    <game-play 
-      v-if="appState === 'playing'" 
-      :trip='gameData.trip!' 
-      :map="GAME_GEOJSON" 
-      :params="gameParameters"
-      @end="onEnd" 
-    />
-  </template>
-  <div class="loading" v-else>Chargement des ressources...</div>
+  </Transition>
+  <router-view v-slot="{ Component }">
+  <Transition name="fade" mode='out-in'>
+    <component :is="Component" />
+  </Transition>
+</router-view>
 </template>
+
 <style scoped>
-.app-home {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  height: 100%;
-}
-h1 {
-  font: bold 28pt 'Parisine';
-  position: relative;
-  text-align: center;
-  & .metro {
-    font-size: 32pt;
+.loading-indicator {
+  z-index: 999999999999;
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  gap: 5px;
+
+  & .text {
+    gap: 5px;
+    font: 8pt 'Parisine';
   }
-  &:after {
-    top: 0;
-    content: 'INDEV';
-    font: bold 11pt monospace;
-    background: #fcbb08;
-    color: red;
-    padding: 2px 4px;
+}
+
+.spinner {
+  width: 10px;
+  height: 10px;
+  border: 2px solid #444;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: rotate 1s linear infinite;
+}
+
+.progress {
+  width: 100%;
+  height: 3px;
+  background: #fff4;
+  border-radius: 10em;
+  overflow: hidden;
+
+  & .progress-fill {
     position: absolute;
-    transform: rotate(22deg) translate(-30px,5px);
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: var(--progress);
+    background: #1f9aff;
+    border-radius: 10em;
+    transition: width .25s ease-out;
   }
 }
-.splash {
-  position: fixed;
-  z-index: -1;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  filter: blur(10px);
-}
-.loading {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  z-index: 99999;
-  backdrop-filter: blur(10px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+
+@keyframes rotate { to { transform: rotate(360deg);}}
+
 </style>

@@ -1,5 +1,8 @@
-import type { GameStats } from "@/types/GameStats";
-import type { GameStop } from "@metroclavier/shared";
+import type { GameStats, GameStop } from "@metroclavier/shared";
+
+export function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 export function calculateSlidingWPM(
   timedChars: Date[],

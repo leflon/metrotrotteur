@@ -1,4 +1,5 @@
-import type { GameStop, GameTrip } from "@metroclavier/shared";
+import type { GameStop } from "./GameStop";
+import type { GameTrip } from "./GameTrip";
 
 export type GameStats = {
   visitedStops: {

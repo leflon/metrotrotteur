@@ -1,28 +1,38 @@
 @font-face {
-  font-family: 'Parisine';
+  font-family: "Parisine";
   font-weight: 400;
-  src: url('/fonts/parisine-regular.otf');
+  src: url("/fonts/parisine-regular.otf");
 }
 
 @font-face {
-  font-family: 'Parisine';
+  font-family: "Parisine";
   font-weight: 600;
-  src: url('/fonts/parisine-bold.otf');
+  src: url("/fonts/parisine-bold.otf");
 }
 
 :root {
   --blue: #0a0082;
-  --yellow: #FFBE00;
+  --yellow: #ffbe00;
+  --jade: #4bc0ad;
   --white: white;
   --black: black;
   --grey: #ccc;
   --shadow: 0 8px 20px #0b3d3024;
-  --border: 1px solid #d6e0da; 
+  --border: 1px solid #d6e0da;
   --radius: 12px;
   --xs-radius: 6px;
 
   --large: 1024px;
   --small: 540px;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
 }
 
 html,
@@ -34,12 +44,33 @@ body,
   -webkit-user-select: none;
 }
 
+#app {
+  background: url("/splash.webp") center / cover;
+}
+
 * {
   -webkit-tap-highlight-color: transparent;
   -webkit-user-select: none;
   user-select: none;
   box-sizing: border-box;
   position: relative;
+}
+
+.flex {
+  display: flex;
+}
+.column {
+  flex-direction: column;
+}
+.center {
+  justify-content: center;
+  align-items: center;
+}
+.alc {
+  align-items: center;
+}
+.juc {
+  justify-content: center;
 }
 
 .debug {
@@ -52,7 +83,7 @@ body,
 }
 
 h1 {
-  font: bold 22pt 'Parisine';
+  font: bold 22pt "Parisine";
   background: var(--blue);
   color: var(--white);
   width: max-content;
@@ -60,18 +91,18 @@ h1 {
 }
 
 h2 {
-  font: bold 14pt 'Parisine';
+  font: bold 14pt "Parisine";
 }
 
 button {
   --text: var(--black);
   --color: var(--grey);
   --focus-color: var(--grey);
-  
+
   touch-action: manipulation;
   appearance: none;
   cursor: pointer;
-  
+
   border: 2px solid var(--color);
   background: color-mix(in hsl, var(--color) 30%, transparent 100%);
   color: var(--text);
@@ -83,7 +114,7 @@ button {
   outline-color: var(--blue);
   gap: 10px;
 
-  font: 10pt 'Parisine';
+  font: 10pt "Parisine";
 
   & > img {
     width: 24px;
@@ -92,39 +123,56 @@ button {
   }
 
   &[disabled] {
-    opacity: .4;
+    opacity: 0.4;
     cursor: default;
   }
 
-  transition: transform .15s ease, background .3s ease;
+  transition:
+    transform 0.15s ease,
+    background 0.3s ease;
   &:not([disabled]):hover {
     transform: translateY(1px);
   }
   &:not([disabled]):active {
-    transform: scale(.95) translateY(1px);
+    transform: scale(0.95) translateY(1px);
   }
 
-  &[data-selected='true'], &.toggle[data-checked='true'] {
+  &[data-selected="true"],
+  &.toggle[data-checked="true"] {
     background: color-mix(in hsl, var(--focus-color) 50%, transparent);
-    border-color: var(--focus-color)
+    border-color: var(--focus-color);
   }
 }
-  
+
 button.big {
   background: var(--color);
-  font: bold 18pt 'Parisine';
-  &:hover { transform: scale(.95);}
-  &:active { transform: scale(.9);}
+  font: bold 18pt "Parisine";
+  &:not([disabled]):hover {
+    transform: scale(0.95);
+  }
+  &:not([disabled]):active {
+    transform: scale(0.9);
+  }
 }
 
 button.toggle {
   &:before {
-    content: '';
+    content: "";
     display: block;
     width: 16px;
     height: 16px;
     background: var(--color);
   }
 
-  &[data-checked='true']:before { content: '✓'; }
+  &[data-checked="true"]:before {
+    content: "✓";
+  }
+}
+
+.cloud {
+  background: #fff5;
+  backdrop-filter: blur(5px);
+  padding: 6px 10px;
+  border: var(--border);
+  border-radius: var(--radius);
 }

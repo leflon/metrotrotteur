@@ -1,0 +1,73 @@
+<script setup lang='ts'>
+import { User, Users } from '@lucide/vue';
+</script>
+
+<template>
+<div class='main-menu flex column center'>
+  <h1 class='logo'>ClaviMétro</h1>
+  <div class='buttons flex column center'>
+    <router-link to='/solo' class='home-btn solo'>
+      <User />
+      Solo
+      </router-link>
+    <router-link to='/' tabindex='-1' class='home-btn multi disabled'>
+      <Users />
+      Multijoueur
+    </router-link>
+  </div>
+  </div>
+</template>
+
+<style scoped>
+.main-menu {
+  height: 100%;
+}
+.logo {
+  font: bold 28pt 'Parisine';
+  position: relative;
+  text-align: center;
+  &:after {
+    top: 0;
+    content: 'INDEV';
+    font: bold 11pt monospace;
+    background: #fcbb08;
+    color: red;
+    padding: 2px 4px;
+    position: absolute;
+    transform: rotate(22deg) translate(-30px,5px);
+  }
+}
+.solo { --color: #83C491; }
+.multi { --color: #F28E42;}
+.home-btn {
+  width: 100%;
+  font: bold 18pt 'Parisine';
+  padding: 12px 40px;
+  color: #222;
+  background: white;
+  border: var(--border);
+  border-radius: 12px;
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  transition: .3s ease;
+
+  &:hover {
+    transform: scale(1.05);
+    color: var(--color);
+    border-color: var(--color);
+    background: color-mix(in srgb, var(--color) 10%, white)
+  }
+  &:active {
+    transform: scale(.95);
+  }
+
+  &.disabled {
+    pointer-events: none;
+    cursor: not-allowed;
+    opacity: .5;
+  }
+}
+</style>
