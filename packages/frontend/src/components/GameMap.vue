@@ -130,6 +130,9 @@ watch(
 <template>
   <div class='map-container'>
     <div id="game-map"></div>
+    <div class='cute-train'>
+      <img src="/train.svg" :style='{transform: `rotate(${angle + 90}deg)`}' />
+    </div>
   </div>
 </template>
 
@@ -146,6 +149,8 @@ watch(
   transform: translate(-50%, -50%);
   & img {
     transition: transform .3s ease 0.8s;
+    width: 64px;
+    height: 64px;
   }
 }
 

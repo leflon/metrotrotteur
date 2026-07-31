@@ -282,7 +282,7 @@ onUnmounted(() => {
   }
 
   &.exiting {
-    transform: scale(.95);
+    transform: scale(.9);
   }
   &.exiting .overlay-wrapper {
     width: 100%;
