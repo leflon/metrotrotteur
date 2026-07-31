@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { calculateStopWPM, formatDuration } from "@/lib/utils";
-import type { GameStats } from "@/types/GameStats";
+import type { GameStats } from "@metroclavier/shared";
 import {
     CategoryScale,
     Chart,
