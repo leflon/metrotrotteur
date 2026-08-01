@@ -3,22 +3,23 @@ import { computed, onMounted, ref } from "vue";
 import "./index.css";
 import { RouterView } from "vue-router";
 import { api } from "./lib/api";
+import { ArrowLeftToLine } from "@lucide/vue";
 import { resources } from "./stores/resources";
 
 const N_RESOURCES_TO_DOWNLOAD = 2;
 const currentDownload = ref<number>(0);
 
 onMounted(async () => {
-  const routes = await api.get('routes');
+  const routes = await api.get("routes");
   resources.GAME_ROUTES = routes;
   currentDownload.value++;
-  
-  const map = await api.get('map.json');
+
+  const map = await api.get("map.json");
   currentDownload.value++;
   resources.GAME_GEOJSON = map;
 
   // Let the progress bar move before shutting down the loading indicator
-  setTimeout(() => currentDownload.value = -1, 300);
+  setTimeout(() => (currentDownload.value = -1), 300);
 });
 
 const progressWidth = computed(
@@ -44,10 +45,10 @@ const progressWidth = computed(
     </div>
   </Transition>
   <router-view v-slot="{ Component }">
-  <Transition name="fade" mode='out-in'>
-    <component :is="Component" />
-  </Transition>
-</router-view>
+    <Transition name="fade" mode="out-in">
+      <component :is="Component" />
+    </Transition>
+  </router-view>
 </template>
 
 <style scoped>
@@ -55,12 +56,12 @@ const progressWidth = computed(
   z-index: 999999999999;
   position: fixed;
   top: 10px;
-  left: 10px;
+  right: 10px;
   gap: 5px;
 
   & .text {
     gap: 5px;
-    font: 8pt 'Parisine';
+    font: 8pt "Parisine";
   }
 }
 
@@ -88,10 +89,13 @@ const progressWidth = computed(
     width: var(--progress);
     background: #1f9aff;
     border-radius: 10em;
-    transition: width .25s ease-out;
+    transition: width 0.25s ease-out;
   }
 }
 
-@keyframes rotate { to { transform: rotate(360deg);}}
-
+@keyframes rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
 </style>

@@ -6,6 +6,7 @@ import GameParamsMenu from "@/components/GameParamsMenu.vue";
 import GameStartBanner from "@/components/ui/GameStartBanner.vue";
 import GamePlay from "@/components/GamePlay.vue";
 import { resources } from "@/stores/resources";
+import AppHeader from "@/components/ui/AppHeader.vue";
 
 const isPlaying = ref(false);
 
@@ -38,6 +39,7 @@ const onEnd = () => {
 </script>
 <template>
   <div class="pregame" v-if="!isPlaying">
+    <app-header></app-header>
     <div class='menu-container'>
       <game-params-menu class='menu' v-model="params"></game-params-menu>
     </div>

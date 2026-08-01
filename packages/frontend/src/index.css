@@ -32,7 +32,7 @@
 }
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.15s ease;
 }
 
 html,
@@ -56,6 +56,17 @@ body,
   position: relative;
 }
 
+#app {
+  display: flex;
+  flex-direction: column;
+}
+
+.hf {
+  height: 100%;
+}
+.f1 {
+  flex: 1;
+}
 .flex {
   display: flex;
 }

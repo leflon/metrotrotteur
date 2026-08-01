@@ -10,7 +10,7 @@ import { User, Users } from '@lucide/vue';
       <User />
       Solo
       </router-link>
-    <router-link to='/' tabindex='-1' class='home-btn multi disabled'>
+    <router-link to='/multi' class='home-btn multi'>
       <Users />
       Multijoueur
     </router-link>

@@ -12,4 +12,5 @@ async function call(endpoint: string, method: string, data?: any) {
 
 export const api = {
   get: (endpoint: string) => call(endpoint, 'GET'),
+  post: (endpoint: string, data?: any) => call(endpoint, 'POST', data)
 };

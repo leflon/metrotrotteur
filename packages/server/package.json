@@ -16,5 +16,10 @@
     "generate-playable-trips": "bun scripts/generate-playable-trips.ts"
   },
   "type": "module",
-  "main": "src/index.ts"
+  "main": "src/index.ts",
+  "dependencies": {
+    "@socket.io/bun-engine": "^0.1.1",
+    "hono": "^4.12.33",
+    "socket.io": "^4.8.3"
+  }
 }

@@ -1,25 +1,17 @@
+import app from "./app";
+import { engine, io } from "./socket";
 import { serve } from "bun";
-import { GAME_ROUTES, GAME_TRIPS } from "./lib/db";
-import { MAP_GEOJSON } from "./lib/map";
-const CORS_HEADERS: Record<string, string> = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "*",
-};
-function withCors(res: Response) {
-  const withHeaders = res.clone() as typeof res;
-  for (const [key, value] of Object.entries(CORS_HEADERS)) {
-    withHeaders.headers.set(key, value);
-  }
-  return withHeaders;
-}
 
-const server = serve({
-  routes: {
-    "/routes": () => withCors(Response.json(GAME_ROUTES)),
-    "/trip/:id": (req) => withCors(Response.json(GAME_TRIPS[req.params.id])),
-    "/map.json": () => withCors(Response.json(MAP_GEOJSON)),
+serve({
+  fetch(req, server) {
+    const url = new URL(req.url);
+    if (url.pathname === "/socket.io/") {
+      console.log('socket', url.pathname);
+      return engine.handleRequest(req, server);
+    } else {
+      console.log('app', url.pathname);
+      return app.fetch(req, server);
+    }
   },
+  websocket: engine.handler().websocket,
 });
-
-console.log(`-- Server running at ${server.url} --`);
