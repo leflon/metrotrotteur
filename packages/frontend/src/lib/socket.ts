@@ -11,7 +11,7 @@ type ConnectionAttemptResponse = {
 }
 
 export class RoomConnection extends EventTarget {
-    private socket: Socket;
+  private socket: Socket;
 
   constructor(socket: Socket) {
     super();
@@ -33,11 +33,20 @@ export class RoomConnection extends EventTarget {
     });
   }
 
-  async updateRoom(room: MultiplayerRoom) {
+  async updateRoom(room: Partial<MultiplayerRoom>) {
     this.socket.emit('update-room', room);
   }
 
   async startGame() {
     this.socket.emit('start-game');
   }
+
+  async emitReady() {
+    this.socket.emit('ready');
+  }
+
+  emitCorrect(duration: number) {
+    this.socket.emit('correct', duration);
+  }
+  
 }

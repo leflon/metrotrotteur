@@ -9,8 +9,12 @@ export interface MultiplayerRoom {
   maxPlayers: number;
   password: string;
   gameParams: GameParams;
+  currentGameData: MultiplayerGameData;
 };
 
+export type MultiplayerGameData = {
+  timings: Record<string, number[]>;
+}
 
 export type Player = {
   id: string;

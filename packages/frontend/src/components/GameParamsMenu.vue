@@ -55,6 +55,14 @@ const tripOptions = computed(() =>
 
 onMounted(() => (params.value.trip = ""));
 watch(tripOptions, (opts) => (params.value.trip = opts[0]?.value ?? ""));
+watch(() => params.value.trip, (trip) => {
+  const route = Object.values(resources.GAME_ROUTES)
+    .find(r => r.trips.some(t => t.id === trip))
+  console.log(route);
+  console.log(trip);
+  if (route)
+    selectedRoute.value = route.id;
+}, { immediate: true });
 </script>
 
 <template>

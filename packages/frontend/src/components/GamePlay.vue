@@ -2,7 +2,7 @@
 import { api } from "@/lib/api";
 import { angle, convertStopsToEasy } from "@/lib/utils";
 import type { GameState } from "@/types/GameState";
-import type { GameParams, GameStats } from "@metroclavier/shared";
+import type { GameParams, GameStats, MultiplayerRoom } from "@metroclavier/shared";
 import { type GameTransfer, type GameTrip } from "@metroclavier/shared";
 import {
   computed,
@@ -18,6 +18,7 @@ import GameMap from "./GameMap.vue";
 import InGameStats from "./InGameStats.vue";
 import PreGameScreen from "./ui/PreGameScreen.vue";
 import ExitButton from "./ui/ExitButton.vue";
+import MultiplayerGameData from "./ui/MultiplayerGameData.vue";
 
 const PLACEHOLDER_TRIP: GameTrip = {
   id: "loading",
@@ -37,10 +38,14 @@ const PLACEHOLDER_TRIP: GameTrip = {
 
 const emit = defineEmits<{
   end: [];
+  ready: [];
+  correct: [number];
 }>();
 
 const props = defineProps<{
   params: GameParams;
+  loading?: boolean;
+  multiplayerRoom?: MultiplayerRoom
 }>();
 
 const state = ref<GameState>({
@@ -99,8 +104,10 @@ const trainAngle: ComputedRef<number> = computed<number>(() => {
 //#endregion
 
 const loadTrip = async () => {
+  const isFirstDl = state.value.trip.id === "loading";
   const trip = await api.get(`trip/${props.params.trip}`);
   state.value.trip = trip;
+  if (isFirstDl) emit("ready");
 };
 
 const startGame = () => {
@@ -128,38 +135,44 @@ const setPossibleTransfers = () => {
   const transfers = trip.transfers[state.value.currentStopIndex];
   if (!transfers) return (state.value.possibleTransfers = []);
 
-  const possible = transfers
-    .filter(
-      (t) =>
-        // Always allow the current trip so we can circle back to it
-        t.trip === state.value.trip.id ||
-        // Allow any transfer to another line
-        state.value.trip.route.id !== t.route.id ||
-        // Prevent a transfer that would make it go backwards on the same line
-        (stats.value.visitedStops.at(-1)?.stop.id !== t.nextStop &&
-          // Also prevent a transfer that would not change the next stop while on the next line
-          state.value.trip.stops[state.value.currentStopIndex + 1]?.id !==
-            t.nextStop),
-    )
-    // Force the current trip at the last position to loop through all other options
-    // before falling back on it.
-    .sort((a, b) =>
-      a.trip === trip.id
-        ? 1
-        : b.trip === trip.id
-          ? -1
-          : parseInt(a.route.name) - parseInt(b.route.name),
-    );
+  const possible =
+    props.params.gamemode === "multi"
+      ? []
+      : transfers
+          .filter(
+            (t) =>
+              // Always allow the current trip so we can circle back to it
+              t.trip === state.value.trip.id ||
+              // Allow any transfer to another line
+              state.value.trip.route.id !== t.route.id ||
+              // Prevent a transfer that would make it go backwards on the same line
+              (stats.value.visitedStops.at(-1)?.stop.id !== t.nextStop &&
+                // Also prevent a transfer that would not change the next stop while on the next line
+                state.value.trip.stops[state.value.currentStopIndex + 1]?.id !==
+                  t.nextStop),
+          )
+          // Force the current trip at the last position to loop through all other options
+          // before falling back on it.
+          .sort((a, b) =>
+            a.trip === trip.id
+              ? 1
+              : b.trip === trip.id
+                ? -1
+                : parseInt(a.route.name) - parseInt(b.route.name),
+          );
   state.value.possibleTransfers = possible;
 };
 
 //#region Event Handlers
 const onCorrect = () => {
+  const duration = Date.now() - state.value.currentStopStart.getTime();
   stats.value.visitedStops.push({
     stop: currentStop.value!,
     route: state.value.trip.route,
-    duration: Date.now() - state.value.currentStopStart.getTime(),
+    duration,
   });
+
+  emit('correct', duration);
 
   if (state.value.currentStopIndex === state.value.trip.stops.length - 1) {
     displayGameStats();
@@ -175,6 +188,8 @@ const onCorrectChar = () => {
 };
 
 const onTransfer = async (trip: string) => {
+  if (props.params.gamemode === "multi") return;
+
   const tripData = (await api.get(`trip/${trip}`)) as GameTrip;
 
   const currentStop = state.value.trip.stops[state.value.currentStopIndex]!;
@@ -218,9 +233,9 @@ watch(
   <Transition name="fade">
     <pre-game-screen
       v-if="state.status === 'pregame'"
-      :loading="state.trip.id === 'loading'"
+      :loading="props.loading || state.trip.id === 'loading'"
       :tripId="props.params.trip"
-      @start='startGame'
+      @start="startGame"
     ></pre-game-screen>
     <div
       class="game-overlay"
@@ -228,7 +243,10 @@ watch(
       :style="{ transform: `translateY(${-overlayOffset}px)` }"
     >
       <exit-button @click="onEnd"></exit-button>
-      <div class='game-center-overlay'>
+      <div v-if="multiplayerRoom" class='multi-overlay'>
+        <MultiplayerGameData :room="multiplayerRoom" :trip="state.trip" />
+      </div>
+      <div class="game-center-overlay">
         <in-game-stats
           :start="stats.gameStart"
           :timedChars="stats.timedCorrectChars"
@@ -266,6 +284,11 @@ watch(
   left: 0;
   width: 100%;
   height: 100%;
+}
+.multi-overlay {
+  position: absolute;
+  top: 10px;
+  right: 10px;
 }
 .game-center-overlay {
   position: absolute;

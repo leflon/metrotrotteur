@@ -19,7 +19,7 @@ app.get("/map.json", (c) => c.json(MAP_GEOJSON));
 
 app.get('/multi/rooms', (c) => {
   const roomsArr = Object.values(MultiplayerRoom.ROOMS)
-    .map(r => ({ ...r, password: r.password ? 'XXX' : '' }));
+    .map(r => r.toJSON());
     
   return c.json(roomsArr);
 });
