@@ -14,6 +14,7 @@ function withContext(socket: Socket, handler: (room: MultiplayerRoom, player: Pl
 }
 
 export default function registerMultiplayerHandlers(io: Server, socket: Socket) {
+  console.log('SOCKET CONNECTION', socket.id);
   socket.on('join-room', ({roomId, password}, callback) => {
     const room = MultiplayerRoom.ROOMS[roomId];
     
@@ -27,7 +28,7 @@ export default function registerMultiplayerHandlers(io: Server, socket: Socket) 
     }
     try {
       room.addPlayer(socket.data.player);
-      io.to(room.id).emit('update-room', { players: room.players });
+      io.to(room.id).emit('update-room', { players: room.players, hostId: room.hostId });
       socket.join(room.id);
       callback({success: true, room});
     } catch (error: unknown) {
@@ -56,5 +57,12 @@ export default function registerMultiplayerHandlers(io: Server, socket: Socket) 
   socket.on('correct', (duration: number) => withContext(socket, (room, player) => {
     room.playerCorrect(player.id, duration);
     io.to(room.id).emit('update-room', { currentGameData: room.currentGameData });
+    if (room.currentGameData.willEndAt !== null) {
+      function onEnd() {
+        io.to(room.id).emit('update-room', { status: 'idle', currentGameData: room.currentGameData });
+        room.removeEventListener('end', onEnd);
+      }
+      room.addEventListener('end', onEnd);
+    }
   })());
 }

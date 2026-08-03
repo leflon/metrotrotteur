@@ -14,6 +14,7 @@ export interface MultiplayerRoom {
 
 export type MultiplayerGameData = {
   timings: Record<string, number[]>;
+  willEndAt: Date | null;
 }
 
 export type Player = {

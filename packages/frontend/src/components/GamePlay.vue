@@ -2,7 +2,11 @@
 import { api } from "@/lib/api";
 import { angle, convertStopsToEasy } from "@/lib/utils";
 import type { GameState } from "@/types/GameState";
-import type { GameParams, GameStats, MultiplayerRoom } from "@metroclavier/shared";
+import type {
+  GameParams,
+  GameStats,
+  MultiplayerRoom,
+} from "@metroclavier/shared";
 import { type GameTransfer, type GameTrip } from "@metroclavier/shared";
 import {
   computed,
@@ -45,7 +49,7 @@ const emit = defineEmits<{
 const props = defineProps<{
   params: GameParams;
   loading?: boolean;
-  multiplayerRoom?: MultiplayerRoom
+  multiplayerRoom?: MultiplayerRoom;
 }>();
 
 const state = ref<GameState>({
@@ -172,7 +176,7 @@ const onCorrect = () => {
     duration,
   });
 
-  emit('correct', duration);
+  emit("correct", duration);
 
   if (state.value.currentStopIndex === state.value.trip.stops.length - 1) {
     displayGameStats();
@@ -221,6 +225,15 @@ watch(
   },
   { immediate: true },
 );
+
+watch(
+  () => props.multiplayerRoom?.status,
+  (status) => {
+    if (status === 'idle') {
+      state.value.status = 'postgame';
+    }
+  },
+);
 </script>
 
 <template>
@@ -243,7 +256,8 @@ watch(
       :style="{ transform: `translateY(${-overlayOffset}px)` }"
     >
       <exit-button @click="onEnd"></exit-button>
-      <div v-if="multiplayerRoom" class='multi-overlay'>
+      <div v-if="multiplayerRoom" class="multi-overlay">
+        <div v-if="multiplayerRoom.currentGameData.willEndAt">WILL END!!</div>
         <MultiplayerGameData :room="multiplayerRoom" :trip="state.trip" />
       </div>
       <div class="game-center-overlay">

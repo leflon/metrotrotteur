@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import GameParamsMenu from "@/components/GameParamsMenu.vue";
 import GamePlay from "@/components/GamePlay.vue";
-import MultiplayerGameData from "@/components/ui/MultiplayerGameData.vue";
 import { RoomConnection } from "@/lib/socket";
-import { type Player, type MultiplayerRoom, type GameTrip } from "@metroclavier/shared";
+import { type MultiplayerRoom, type Player, DEFAULT_MULTIPLAYER_ROOM } from "@metroclavier/shared";
 import { io } from "socket.io-client";
 import { onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -13,22 +12,7 @@ const route = useRoute();
 
 let connection: RoomConnection;
 
-const room = ref<MultiplayerRoom & { [x: string]: any }>({
-  id: "",
-  name: "",
-  password: "",
-  maxPlayers: -1,
-  hostId: "",
-  status: "idle",
-  players: [],
-  currentGameData: { timings: {} },
-  gameParams: {
-    gamemode: "multi",
-    network: "metro",
-    rules: { easy: false },
-    trip: "",
-  },
-});
+const room = ref<MultiplayerRoom>(DEFAULT_MULTIPLAYER_ROOM);
 
 const me = ref<Player>({
   id: "",
@@ -42,16 +26,14 @@ const requirePassword = ref(false);
 const invalidPassword = ref(false);
 
 // Game state
+const isInGame = ref(false);
 const isGameLoading = ref(false);
 
 function registerEvents(c: RoomConnection) {
   c.addEventListener("update-room", (_e: Event) => {
     const e = _e as CustomEvent;
     const data = e.detail as Partial<MultiplayerRoom>;
-    for (const [key, val] of Object.entries(data)) {
-      console.log('updating');
-      room.value[key] = val;
-    }
+    room.value = { ...room.value, ...data };
   });
 
   c.addEventListener("all-ready", () => {
@@ -97,9 +79,11 @@ onUnmounted(() => {
 });
 
 watch(() => room.value.status, (newVal) => {
-  if (newVal === 'playing')
+  if (newVal === 'playing') {
     isGameLoading.value = true;
-});
+    isInGame.value = true;
+  }
+}, { deep: true });
 
 watch(
   () => room.value.gameParams,
@@ -112,7 +96,7 @@ watch(
 
 <template>
   <div class='f1'>
-    <div class="lobby" v-if="room.status === 'idle'">
+    <div class="lobby" v-if="!isInGame">
       <game-params-menu
         v-if="room.hostId === me.id"
         v-model="room.gameParams"
@@ -120,7 +104,7 @@ watch(
       <button @click="connection.startGame()">play</button>
     </div>
     <div class='hf game' v-else>
-      <game-play :params="room.gameParams" :multiplayerRoom="room" @correct='onCorrect'></game-play>
+      <game-play :params="room.gameParams" :multiplayerRoom="room" @correct='onCorrect' @end="isInGame = false"></game-play>
     </div>
   </div>
 </template>

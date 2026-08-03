@@ -1,4 +1,4 @@
-import type { GameParams, MultiplayerRoom as MultiplayerRoomData, Player } from "@metroclavier/shared";
+import { DEFAULT_MULTIPLAYER_ROOM, type GameParams, type MultiplayerRoom as MultiplayerRoomData, type Player } from "@metroclavier/shared";
 import { GAME_TRIPS } from "./db";
 import type { MultiplayerGameData } from "@metroclavier/shared/src/types/Multiplayer";
 
@@ -13,7 +13,7 @@ function randomStopName() {
   return arr[n]!.stops[m]!.name;
 }
 
-export default class MultiplayerRoom implements MultiplayerRoomData {
+export default class MultiplayerRoom extends EventTarget implements MultiplayerRoomData {
   [x: string]: any;
   id: string;
   name: string;
@@ -28,6 +28,7 @@ export default class MultiplayerRoom implements MultiplayerRoomData {
   static ROOMS: Record<string, MultiplayerRoom> = {};
 
   constructor(data: MultiplayerRoomData) {
+    super();
     this.id = data.id;
     this.name = data.name;
     this.hostId = data.hostId;
@@ -41,8 +42,8 @@ export default class MultiplayerRoom implements MultiplayerRoomData {
     MultiplayerRoom.ROOMS[this.id] = this;
   }
 
-
   addPlayer(player: Player): void {
+    console.log('hit');
     if (this.players.length >= this.maxPlayers) {
       throw new Error('full');
     }
@@ -52,7 +53,6 @@ export default class MultiplayerRoom implements MultiplayerRoomData {
 
     if (this.players.length === 0)
       this.hostId = player.id;
-    
     
     this.players.push(player);
   }
@@ -74,7 +74,10 @@ export default class MultiplayerRoom implements MultiplayerRoomData {
     this.status = 'playing';
     this.readyPlayers = new Set();
     const timings = this.players.reduce((acc, player) => ({...acc, [player.id]: [] }), {} as Record<string, number[]>);
-    this.currentGameData.timings = timings;
+    this.currentGameData = {
+      timings,
+      willEndAt: null
+    };
     return true;
   }
 
@@ -86,29 +89,29 @@ export default class MultiplayerRoom implements MultiplayerRoomData {
 
   playerCorrect(playerId: string, duration: number) {
     this.currentGameData.timings[playerId]!.push(duration);
+    if (this.checkHasFinished(playerId) && this.currentGameData.willEndAt === null) {
+      this.currentGameData.willEndAt = new Date(Date.now() + 15 * 1000);
+      setTimeout(() => {
+        this.status = 'idle';
+        this.dispatchEvent(new Event('end'));
+      }, 15 * 1000);
+    }
+  }
+
+  private checkHasFinished(playerId: string): boolean {
+    const trip = GAME_TRIPS[this.gameParams.trip];
+    if (!trip) return false;
+
+    return this.currentGameData.timings[playerId]!.length === trip.stops.length;
   }
 
   static create(): MultiplayerRoom {
     return new MultiplayerRoom({
+      ...structuredClone(DEFAULT_MULTIPLAYER_ROOM),
       id: randomRoomId(),
       name: randomStopName(),
-      hostId: '',
-      players: [],
-      status: 'idle',
-      gameParams: {
-        gamemode: 'multi',
-        network: 'metro',
-        trip: '',
-        rules: {
-          easy: false,
-        },
-      },
-      currentGameData: { timings: {} },
-      maxPlayers: 8,
-      password: '',
     });
   }
-
 
   toJSON(): MultiplayerRoomData {
     return {
@@ -119,6 +122,7 @@ export default class MultiplayerRoom implements MultiplayerRoomData {
       status: this.status,
       gameParams: this.gameParams,
       maxPlayers: this.maxPlayers,
+      currentGameData: this.currentGameData,
       password: this.password ? 'XXX' : '',
     };
   }
