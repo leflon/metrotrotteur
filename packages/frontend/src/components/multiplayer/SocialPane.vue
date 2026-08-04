@@ -38,7 +38,7 @@ const startEditing = () => {
 
 <template>
   <div class='social-pane'>
-    <h2 class='section-title'>Joueurs <span class='player-count'>{{ players.length }}</span></h2>
+    <h2>Joueurs <span class='player-count'>{{ players.length }}</span></h2>
     <div class='players-list'>
       <div
         class='player flex alc'
@@ -109,7 +109,7 @@ const startEditing = () => {
   padding: 12px 0 4px;
 }
 
-.section-title {
+h2 {
   font: bold 11pt "Parisine";
   color: #555;
   text-transform: uppercase;

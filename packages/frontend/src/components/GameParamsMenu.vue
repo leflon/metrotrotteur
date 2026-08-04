@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { resources } from "@/stores/resources";
+import { getRouteFromTrip, resources } from "@/stores/resources";
 import { type GameParams } from "@metroclavier/shared";
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import ButtonGrid from "./ui/ButtonGrid.vue";
+import { X } from "@lucide/vue";
 
 const TRANSPORT_MODES = [
   {
@@ -27,7 +28,11 @@ const TRANSPORT_MODES = [
 ];
 
 const emit = defineEmits<{
-  play: [];
+  close: []
+}>();
+
+const props = defineProps<{
+  closable?: boolean;
 }>();
 
 const params = defineModel<GameParams>({ required: true });
@@ -53,13 +58,21 @@ const tripOptions = computed(() =>
       })),
 );
 
-onMounted(() => (params.value.trip = ""));
+function onKeyDown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && props.closable)
+    emit('close');
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', onKeyDown);
+});
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeyDown);
+});
+
 watch(tripOptions, (opts) => (params.value.trip = opts[0]?.value ?? ""));
 watch(() => params.value.trip, (trip) => {
-  const route = Object.values(resources.GAME_ROUTES)
-    .find(r => r.trips.some(t => t.id === trip))
-  console.log(route);
-  console.log(trip);
+  const route = getRouteFromTrip(trip);
   if (route)
     selectedRoute.value = route.id;
 }, { immediate: true });
@@ -67,6 +80,7 @@ watch(() => params.value.trip, (trip) => {
 
 <template>
   <div class="game-params-menu">
+    <button v-if="closable" class='close discreet' @click="emit('close')"><x /></button>
     <h1>Mode <span class='mode'>{{ params.gamemode }}</span></h1>
     <div class="menu-main">
       <div class="general-pane">
@@ -123,6 +137,12 @@ h1 span { text-transform: capitalize; }
     width: 99%;
     overflow: auto;
   }
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
 }
 
 .menu-main {

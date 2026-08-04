@@ -45,9 +45,7 @@ const onEnd = () => {
     </div>
     <game-start-banner
       class='start'
-      :enabled="params.trip !== ''"
-      :color="route?.color"
-      :textColor="route?.textColor"
+      :params="params"
       @play='onPlay'
     >
     </game-start-banner>
