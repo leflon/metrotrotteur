@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import GameParamsMenu from "@/components/GameParamsMenu.vue";
 import GamePlay from "@/components/GamePlay.vue";
-import { RoomConnection } from "@/lib/socket";
+import SocialPane from "@/components/multiplayer/SocialPane.vue";
+import { RoomConnection } from "@/lib/RoomConnection";
+import { createSocket } from "@/lib/socket";
 import { type MultiplayerRoom, type Player, DEFAULT_MULTIPLAYER_ROOM } from "@metroclavier/shared";
 import { io } from "socket.io-client";
 import { onMounted, onUnmounted, ref, watch } from "vue";
@@ -12,7 +14,7 @@ const route = useRoute();
 
 let connection: RoomConnection;
 
-const room = ref<MultiplayerRoom>(DEFAULT_MULTIPLAYER_ROOM);
+const room = ref<MultiplayerRoom>(structuredClone(DEFAULT_MULTIPLAYER_ROOM));
 
 const me = ref<Player>({
   id: "",
@@ -54,17 +56,18 @@ function onBeforeUnload(e: BeforeUnloadEvent) {
 }
 
 onMounted(async () => {
-  window.addEventListener("beforeunload", onBeforeUnload);
-
-  const socket = io(import.meta.env.VITE_PUBLIC_API_URL);
+  //window.addEventListener("beforeunload", onBeforeUnload);
+  const roomId = route.params["id"]! as string;
+  const socket = createSocket();
   socket.once("player-data", (p) => (me.value = p));
 
-  connection = new RoomConnection(socket);
+  connection = new RoomConnection(socket, roomId);
 
-  const roomId = route.params["id"]! as string;
   const res = await connection.joinRoom(roomId);
+  console.log('cal');
+  console.log({res});
 
-  if (!res.success) {
+  if (!res?.success) {
     if (res.error === "password") return (requirePassword.value = true);
 
     // Any other reason just gets the user back to the hub
@@ -88,7 +91,8 @@ watch(() => room.value.status, (newVal) => {
 watch(
   () => room.value.gameParams,
   (params) => {
-    connection.updateRoom({gameParams: params });
+    if (room.value.hostId === me.value.id)
+      connection.updateRoom({gameParams: params });
   },
   { deep: true },
 );
@@ -101,6 +105,17 @@ watch(
         v-if="room.hostId === me.id"
         v-model="room.gameParams"
       />
+      <div class='room-view window'>
+        <h1>{{room.name}}</h1>
+        <social-pane
+          :players="room.players"
+          :hostId="room.hostId"
+          :meId="me.id"
+          @rename="(name) => connection.rename(name)"
+          @kick="(id) => connection.kick(id)"
+          @host-change="(id) => connection.makeHost(id)"
+        />
+      </div>
       <button @click="connection.startGame()">play</button>
     </div>
     <div class='hf game' v-else>

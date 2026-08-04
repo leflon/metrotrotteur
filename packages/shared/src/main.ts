@@ -5,4 +5,4 @@ export type { GameTransfer } from './types/GameTransfer';
 export type { GameStats } from './types/GameStats';
 export type { GameParams } from './types/GameParams';
 export { type MultiplayerRoom, type Player } from './types/Multiplayer';
-export { DEFAULT_MULTIPLAYER_ROOM } from './constants';
+export { DEFAULT_MULTIPLAYER_ROOM, SOCKET_TIMEOUT } from './constants';

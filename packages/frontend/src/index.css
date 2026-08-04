@@ -156,6 +156,12 @@ button {
   }
 }
 
+button.discreet {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
 button.big {
   background: var(--color);
   font: bold 18pt "Parisine";
@@ -179,6 +185,15 @@ button.toggle {
   &[data-checked="true"]:before {
     content: "✓";
   }
+}
+
+.window {
+  background: var(--white);
+  border: var(--border);
+  border-radius: var(--radius);
+  width: 600px;
+  margin: 0 auto;
+  max-width: 80%;
 }
 
 .cloud {

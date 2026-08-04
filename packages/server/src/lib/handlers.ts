@@ -2,6 +2,12 @@ import type { Server, Socket } from "socket.io";
 import type { Player } from "@metroclavier/shared";
 import MultiplayerRoom from "./MultiplayerRoom";
 import type { MultiplayerRoom as MultiplayerRoomData } from "@metroclavier/shared";
+import { USER_STORE } from "@/socket";
+
+function randomPlayerId(): string {
+  const id = Math.random().toString(36).substring(2, 12);
+  return `guest-${id}`;
+}
 
 function withContext(socket: Socket, handler: (room: MultiplayerRoom, player: Player) => void) {
   return () => {
@@ -14,7 +20,11 @@ function withContext(socket: Socket, handler: (room: MultiplayerRoom, player: Pl
 }
 
 export default function registerMultiplayerHandlers(io: Server, socket: Socket) {
-  console.log('SOCKET CONNECTION', socket.id);
+  socket.on('disconnecting', withContext(socket, (room, player) => {
+    console.log('SOCKET DISCONNECT', player.id);
+    player.isConnected = false;
+    io.to(room.id).emit('update-room', { players: room.players, hostId: room.hostId });
+  }));
   socket.on('join-room', ({roomId, password}, callback) => {
     const room = MultiplayerRoom.ROOMS[roomId];
     
@@ -27,11 +37,36 @@ export default function registerMultiplayerHandlers(io: Server, socket: Socket) 
       return;
     }
     try {
-      room.addPlayer(socket.data.player);
+      const uid = USER_STORE.get(room.id)!.get(socket.handshake.auth.token)
+      let userData = room.players.find(p => p.id === uid);
+      if (userData) {
+        // Reconnecting
+        console.log('known dude,', userData);
+        if (userData.isConnected)
+          return callback({success: false, error: 'already-connected'});
+        userData.isConnected = true;
+      } else {
+        console.log('new dude,', socket.handshake.auth.token);
+        // New player
+        const id = randomPlayerId();
+        userData = {
+          id,
+          name: id,
+          score: 0,
+          isConnected: true,
+        };
+        room.addPlayer(userData);
+        USER_STORE.get(room.id)!.set(socket.handshake.auth.token, userData.id);
+      }
+      
+      socket.data.player = userData;
+      socket.emit('player-data', userData);
+      
       io.to(room.id).emit('update-room', { players: room.players, hostId: room.hostId });
       socket.join(room.id);
       callback({success: true, room});
     } catch (error: unknown) {
+      console.error(error);
       callback({success: false, error: (<Error>error).message});
     }
   });
@@ -65,4 +100,10 @@ export default function registerMultiplayerHandlers(io: Server, socket: Socket) 
       room.addEventListener('end', onEnd);
     }
   })());
+
+  socket.on('rename', (name: string) => withContext(socket, (room, player) => {
+    player.name = name;
+    io.to(room.id).emit('update-room', { players: room.players });
+  })());
+
 }

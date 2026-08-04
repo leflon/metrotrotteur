@@ -3,6 +3,7 @@ import { cors } from "hono/cors";
 import { GAME_ROUTES, GAME_TRIPS } from "./lib/db";
 import { MAP_GEOJSON } from "./lib/map";
 import MultiplayerRoom from "./lib/MultiplayerRoom";
+import { USER_STORE } from "./socket";
 
 const app = new Hono();
 
@@ -26,6 +27,7 @@ app.get('/multi/rooms', (c) => {
 
 app.post('/multi/create-room', (c) => {
   const room = MultiplayerRoom.create();
+  USER_STORE.set(room.id, new Map());
   return c.json({roomId: room.id });
 });
 

@@ -43,7 +43,9 @@ export default class MultiplayerRoom extends EventTarget implements MultiplayerR
   }
 
   addPlayer(player: Player): void {
-    console.log('hit');
+    if (this.players.find(p => p.id === player.id))
+      return;
+    
     if (this.players.length >= this.maxPlayers) {
       throw new Error('full');
     }
