@@ -19,4 +19,5 @@ export const DEFAULT_MULTIPLAYER_ROOM: MultiplayerRoom = {
   currentGameData: { timings: {}, willEndAt: null },
   maxPlayers: 8,
   password: '',
+  chat: [],
 };

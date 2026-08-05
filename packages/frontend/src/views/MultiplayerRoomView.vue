@@ -1,18 +1,20 @@
 <script setup lang="ts">
 import GameParamsMenu from "@/components/GameParamsMenu.vue";
 import GamePlay from "@/components/GamePlay.vue";
+import ChatPane from "@/components/multiplayer/ChatPane.vue";
 import SocialPane from "@/components/multiplayer/SocialPane.vue";
+import AppHeader from "@/components/ui/AppHeader.vue";
 import GameStartBanner from "@/components/ui/GameStartBanner.vue";
 import { RoomConnection } from "@/lib/RoomConnection";
 import { createSocket } from "@/lib/socket";
 import { Settings } from "@lucide/vue";
 import {
-  type MultiplayerRoom,
-  type Player,
-  DEFAULT_MULTIPLAYER_ROOM,
+    type MultiplayerRoom,
+    type Player,
+    DEFAULT_MULTIPLAYER_ROOM,
 } from "@metroclavier/shared";
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { onBeforeRouteUpdate, useRoute, useRouter } from "vue-router";
 
 const router = useRouter();
 const route = useRoute();
@@ -28,7 +30,6 @@ const me = ref<Player>({
   score: -1,
 });
 
-
 // Room joining state
 const requirePassword = ref(false);
 const invalidPassword = ref(false);
@@ -36,6 +37,16 @@ const invalidPassword = ref(false);
 // Room state
 const isParamsOpen = ref(false);
 const isHost = computed(() => me.value.id === room.value.hostId);
+const canLaunchGame = computed(
+  () => me.value.id === room.value.hostId && room.value.status !== "playing",
+);
+const bannerText = computed(() =>
+  room.value.status === "playing"
+    ? "En jeu..."
+    : isHost.value
+      ? "Lancer"
+      : "En attente de l'hôte",
+);
 let updateWasDistant = false;
 
 // Game state
@@ -53,6 +64,10 @@ function registerEvents(c: RoomConnection) {
   c.addEventListener("all-ready", () => {
     isGameLoading.value = false;
   });
+
+  c.addEventListener("kicked", () => {
+    router.push("/multi?reject_reason=kicked");
+  });
 }
 
 const onReady = () => {
@@ -63,9 +78,24 @@ const onCorrect = (duration: number) => {
   connection.emitCorrect(duration);
 };
 
-function onBeforeUnload(e: BeforeUnloadEvent) {
+const onBeforeUnload = (e: BeforeUnloadEvent) => {
   e.preventDefault();
-}
+};
+
+const leaveRoom = () => {
+  connection.leaveRoom();
+  router.push("/multi");
+};
+
+const cancelGame = () => {
+  room.value.status = "idle";
+  connection.updateRoom({ status: "idle" });
+};
+
+const onExit = () => {
+  if (room.value.hostId === me.value.id) cancelGame();
+  else leaveRoom();
+};
 
 onMounted(async () => {
   //window.addEventListener("beforeunload", onBeforeUnload);
@@ -76,8 +106,6 @@ onMounted(async () => {
   connection = new RoomConnection(socket, roomId);
 
   const res = await connection.joinRoom(roomId);
-  console.log("cal");
-  console.log({ res });
 
   if (!res?.success) {
     if (res.error === "password") return (requirePassword.value = true);
@@ -89,14 +117,11 @@ onMounted(async () => {
     registerEvents(connection);
   }
 });
-onUnmounted(() => {
-  window.removeEventListener("beforeunload", onBeforeUnload);
-});
 
 watch(
   () => room.value.status,
-  (newVal) => {
-    if (newVal === "playing") {
+  (newVal, oldVal) => {
+    if (newVal === "playing" && oldVal !== "playing") {
       isGameLoading.value = true;
       isInGame.value = true;
     }
@@ -117,37 +142,42 @@ watch(
 
 <template>
   <div class="f1">
-    <div class="lobby" v-if="!isInGame">
-    <Transition name='fade'>
-      <div class='params-container flex center' v-if="isParamsOpen">
-        <game-params-menu
-          v-model="room.gameParams"
-          :closable="true"
-          @close="isParamsOpen = false"
-        />
-      </div>
-    </Transition>
-      <div class="room-view window">
-        <div class='title flex alc'>
-        <h1>{{ room.name }}</h1>
-        <button v-if="isHost" @click="isParamsOpen = true">
-          <settings />
-          Paramètres
-        </button>
+    <div class="lobby flex column hf" v-if="!isInGame">
+      <app-header @exit="leaveRoom" />
+      <Transition name="fade">
+        <div class="params-container flex center" v-if="isParamsOpen">
+          <game-params-menu
+            v-model="room.gameParams"
+            :closable="true"
+            @close="isParamsOpen = false"
+          />
         </div>
-        <social-pane
-          :players="room.players"
-          :hostId="room.hostId"
-          :meId="me.id"
-          @rename="(name) => connection.rename(name)"
-          @kick="(id) => connection.kick(id)"
-          @host-change="(id) => connection.makeHost(id)"
-        />
+      </Transition>
+      <div class="room-view window flex column">
+        <div class="title flex alc">
+          <h1>{{ room.name }}</h1>
+          <button v-if="isHost" @click="isParamsOpen = true">
+            <settings />
+            Paramètres
+          </button>
+        </div>
+        <div class="room-view-panes flex f1">
+          <social-pane
+            class="pane"
+            :players="room.players"
+            :hostId="room.hostId"
+            :meId="me.id"
+            @rename="(name) => connection.rename(name)"
+            @kick="(id) => connection.kick(id)"
+            @host-change="(id) => connection.makeHost(id)"
+          />
+          <chat-pane class="pane" :messages="room.chat" :players="room.players" @send="msg => connection.sendChat(msg)" />
+        </div>
       </div>
       <game-start-banner
         :params="room.gameParams"
-        :readonly="!isHost"
-        :text="isHost ? 'Lancer' : 'En attente de l\'hôte'"
+        :readonly="!canLaunchGame"
+        :text="bannerText"
         :displayDetails="true"
         @play="connection.startGame()"
       ></game-start-banner>
@@ -156,14 +186,21 @@ watch(
       <game-play
         :params="room.gameParams"
         :multiplayerRoom="room"
+        :loading="isGameLoading"
+        @ready="onReady"
         @correct="onCorrect"
         @end="isInGame = false"
+        @exitInGame="onExit"
       ></game-play>
     </div>
   </div>
 </template>
 
 <style scoped>
+.pane {
+  height: 100%;
+  overflow: hidden;
+}
 .params-container {
   z-index: 9999999;
   position: fixed;
@@ -175,5 +212,18 @@ watch(
 }
 .title {
   gap: 10px;
+}
+
+.lobby {
+  justify-content: space-between;
+  padding-bottom: 20px;
+}
+
+.room-view {
+  height: 600px;
+  overflow: hidden;
+}
+.room-view-panes {
+overflow: hidden;
 }
 </style>

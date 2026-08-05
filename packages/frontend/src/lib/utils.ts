@@ -1,4 +1,4 @@
-import type { GameStats, GameStop } from "@metroclavier/shared";
+import type { GameStats, GameStop, MultiplayerRoom } from "@metroclavier/shared";
 
 export function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -77,4 +77,31 @@ export function convertStopsToEasy(stops: GameStop[]): GameStop[] {
 
 export function srcset(name: string) {
   return `/images/1x/${name}.webp 1x, /images/2x/${name}.webp 2x, /images/3x/${name}.webp 3x`;
+}
+
+export function computeRanking(room: MultiplayerRoom): Record<string, {
+  name: string;
+  rank: number;
+  timings: number[];
+}> {
+  return Object.entries(room.currentGameData.timings)
+    .sort((a, b) => {
+      if (a[1].length === b[1].length) {
+          const sumA = a[1].reduce((acc, curr) => acc + curr, 0);
+          const sumB = b[1].reduce((acc, curr) => acc + curr, 0);
+          return sumA - sumB;
+      }
+      else return b[1].length - a[1].length;
+    })
+    .reduce(
+      (acc, curr, i) => ({
+        ...acc,
+        [curr[0]]: {
+          name: room.players.find((p) => p.id === curr[0])?.name ?? curr[0],
+          rank: i,
+          timings: curr[1],
+        },
+      }),
+      {},
+    );
 }

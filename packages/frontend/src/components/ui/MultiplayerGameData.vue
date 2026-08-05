@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computeRanking } from "@/lib/utils";
 import type { GameTrip, MultiplayerRoom } from "@metroclavier/shared";
 import { computed } from "vue";
 
@@ -7,28 +8,7 @@ const props = defineProps<{
   trip: GameTrip;
 }>();
 
-const rankingPerUser = computed<
-  Record<string, { name: string; rank: number; count: number }>
->(() => {
-  return Object.entries(props.room.currentGameData.timings)
-    .sort((a, b) => {
-      if (a[1].length === b[1].length)
-        return (a[1].at(-1) ?? 0) - (b[1].at(-1) ?? 0);
-      else return b[1].length - a[1].length;
-    })
-    .reduce(
-      (acc, curr, i) => ({
-        ...acc,
-        [curr[0]]: {
-          name:
-            props.room.players.find((p) => p.id === curr[0])?.name ?? curr[0],
-          rank: i,
-          count: curr[1].length,
-        },
-      }),
-      {},
-    );
-});
+const rankingPerUser = computed(() => computeRanking(props.room));
 </script>
 
 <template>
@@ -43,14 +23,14 @@ const rankingPerUser = computed<
         <div class="ranking-name">{{ rankingPerUser[p.id]!.name }}</div>
         <div class="ranking-progress">
           <div class="remaining">
-            {{ rankingPerUser[p.id]!.count }} / {{ trip.stops.length }}
+            {{ rankingPerUser[p.id]!.timings.length }} / {{ trip.stops.length }}
           </div>
           <div class="progress-bar flex col alc">
             <div
               class="progress-bar-inner"
               :style="{
                 width:
-                  (rankingPerUser[p.id]!.count / trip.stops.length) * 100 + '%',
+                  (rankingPerUser[p.id]!.timings.length / trip.stops.length) * 100 + '%',
               }"
             ></div>
           </div>

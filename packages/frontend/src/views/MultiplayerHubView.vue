@@ -39,7 +39,7 @@ onMounted(async () => {
 
 <template>
   <div class="f1 flex column">
-    <AppHeader></AppHeader>
+    <AppHeader exitHref="/"></AppHeader>
     <div class="flex center f1">
       <div class="rooms-list-container">
         <h1 class="title">Salles de jeu</h1>

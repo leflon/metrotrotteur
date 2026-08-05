@@ -10,6 +10,7 @@ export interface MultiplayerRoom {
   password: string;
   gameParams: GameParams;
   currentGameData: MultiplayerGameData;
+  chat: ChatMessage[];
 };
 
 export type MultiplayerGameData = {
@@ -22,4 +23,11 @@ export type Player = {
   name: string;
   score: number;
   isConnected: boolean;
+};
+
+export type ChatMessage = {
+  id: string;
+  author: string;
+  content: string;
+  createdAt: string;
 };

@@ -39,7 +39,7 @@ const onEnd = () => {
 </script>
 <template>
   <div class="pregame" v-if="!isPlaying">
-    <app-header></app-header>
+    <app-header exitHref="/"></app-header>
     <div class='menu-container'>
       <game-params-menu class='menu' v-model="params"></game-params-menu>
     </div>
@@ -50,7 +50,7 @@ const onEnd = () => {
     >
     </game-start-banner>
   </div>
-  <game-play v-else :params='params' @end='onEnd'></game-play>
+  <game-play v-else :params='params' @end='onEnd' @exitInGame="onEnd"></game-play>
 </template>
 
 <style scoped>

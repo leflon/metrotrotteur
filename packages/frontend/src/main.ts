@@ -9,7 +9,7 @@ import App from './App.vue'
 const routes = [
   { path: '/solo', component: SoloView },
   { path: '/multi', component: MultiplayerHubView },
-  { path: '/multi/:id', component: MultiplayerRoomView },
+  { path: '/multi/:id', component: MultiplayerRoomView,  },
   { path: '/', component: HomeView },
 ];
 

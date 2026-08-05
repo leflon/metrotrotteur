@@ -103,8 +103,17 @@ h1 {
 }
 
 h2 {
-  font: bold 14pt "Parisine";
+  font: bold 11pt "Parisine";
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 16px auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
+
+
 
 button {
   --text: var(--black);
@@ -191,7 +200,7 @@ button.toggle {
   background: var(--white);
   border: var(--border);
   border-radius: var(--radius);
-  width: 600px;
+  width: 800px;
   margin: 0 auto;
   max-width: 80%;
 }

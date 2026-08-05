@@ -3,17 +3,31 @@ import { ArrowLeftToLine } from '@lucide/vue';
 import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
+const props = defineProps<{
+  exitButtonText?: string;
+  exitHref?: string;
+  hideExit?: boolean;
+}>();
+const emit = defineEmits<{
+  exit: []
+}>();
+
 const route = useRoute();
 const router = useRouter();
 
-const isHome = computed(() => route.path === '/');
+const onExit = () => {
+  emit('exit');
+  if (props.exitHref)
+    router.push(props.exitHref);
+}
+
 </script>
 
 <template>
 <div class='app-header'>
-  <button v-if='!isHome' class='back' @click='router.go(-1)'>
+  <button v-if='!hideExit' class='back' @click='onExit'>
     <ArrowLeftToLine></ArrowLeftToLine>
-    Retour
+    {{exitButtonText ?? 'Retour'}}
   </button>
 </div>
 </template>

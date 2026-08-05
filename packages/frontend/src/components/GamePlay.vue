@@ -42,6 +42,7 @@ const PLACEHOLDER_TRIP: GameTrip = {
 
 const emit = defineEmits<{
   end: [];
+  exitInGame: [];
   ready: [];
   correct: [number];
 }>();
@@ -228,9 +229,17 @@ watch(
 
 watch(
   () => props.multiplayerRoom?.status,
-  (status) => {
+  (status, oldStatus) => {
+    console.log(status, oldStatus);
+    if (status === oldStatus) return;
     if (status === 'idle') {
       state.value.status = 'postgame';
+      if (!props.multiplayerRoom?.currentGameData.willEndAt)
+        emit('end');
+    }
+    if (status === 'playing') {
+      state.value.status = 'pregame';
+      loadTrip();
     }
   },
 );
@@ -255,7 +264,7 @@ watch(
       v-else-if="state.status === 'playing'"
       :style="{ transform: `translateY(${-overlayOffset}px)` }"
     >
-      <exit-button @click="onEnd"></exit-button>
+      <exit-button @click="emit('exitInGame')"></exit-button>
       <div v-if="multiplayerRoom" class="multi-overlay">
         <div v-if="multiplayerRoom.currentGameData.willEndAt">WILL END!!</div>
         <MultiplayerGameData :room="multiplayerRoom" :trip="state.trip" />
@@ -276,7 +285,7 @@ watch(
       </div>
     </div>
     <div v-else-if="state.status === 'postgame'" class="end-game-stats">
-      <end-game-stats :stats="stats" @playAgain="onEnd"></end-game-stats>
+      <end-game-stats :stats="stats" :trip="state.trip" :room="multiplayerRoom" @playAgain="onEnd"></end-game-stats>
     </div>
   </Transition>
 </template>

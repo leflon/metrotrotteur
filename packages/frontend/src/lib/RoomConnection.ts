@@ -1,4 +1,4 @@
-import type { MultiplayerRoom, Player } from "@metroclavier/shared";
+import type { ChatMessage, MultiplayerRoom, Player } from "@metroclavier/shared";
 import { Socket } from "socket.io-client";
 
 type ConnectionAttemptResponse =
@@ -35,6 +35,10 @@ export class RoomConnection extends EventTarget {
       this.dispatchEvent(new CustomEvent("update-room", { detail: room }));
     });
 
+    socket.on("all-ready", () => {
+      this.dispatchEvent(new Event("all-ready"));
+    });
+
     socket.on("disconnect", () => {
       this._connected = false;
     });
@@ -42,6 +46,15 @@ export class RoomConnection extends EventTarget {
     socket.on("connect", () => {
       this._connected = true;
       socket.emit("join-room", { roomId: this.roomId }, () => {});
+    });
+
+    socket.on("kicked", () => {
+      this._connected = false;
+      this.dispatchEvent(new Event("kicked"));
+    });
+
+    socket.on("chat", (message: ChatMessage) => {
+      this.dispatchEvent(new CustomEvent("chat", { detail: message }));
     });
   }
 
@@ -54,6 +67,14 @@ export class RoomConnection extends EventTarget {
       console.log("emitting join-room", { roomId, password });
       this.socket.emit("join-room", { roomId, password }, resolve);
     });
+  }
+
+  async leaveRoom() {
+    this.socket.emit("leave-room");
+    console.log('DISCONNECT');
+    this.socket.disconnect();
+    console.log('DISCONNECTED');
+    this._connected = false;
   }
 
   async updateRoom(room: Partial<MultiplayerRoom>) {
@@ -82,5 +103,9 @@ export class RoomConnection extends EventTarget {
 
   makeHost(playerId: string) {
     this.socket.emit("make-host", playerId);
+  }
+
+  sendChat(message: string) {
+    this.socket.emit("chat", message);
   }
 }

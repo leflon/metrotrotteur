@@ -38,7 +38,7 @@ const startEditing = () => {
 
 <template>
   <div class='social-pane'>
-    <h2>Joueurs <span class='player-count'>{{ players.length }}</span></h2>
+    <h2>Joueurs</h2>
     <div class='players-list'>
       <div
         class='player flex alc'
@@ -74,7 +74,7 @@ const startEditing = () => {
           <!-- Badges -->
           <div class='badges flex alc'>
             <div class='badge host-badge' v-if="player.id === hostId" title="Hôte">
-              <Crown :size="14" />
+              <Crown :size="16" />
             </div>
             <div class='badge offline-badge' v-if="!player.isConnected" title="Hors ligne">
               ●
@@ -106,35 +106,14 @@ const startEditing = () => {
 
 <style scoped>
 .social-pane {
-  padding: 12px 0 4px;
-}
-
-h2 {
-  font: bold 11pt "Parisine";
-  color: #555;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 5px 10px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.player-count {
-  background: var(--blue);
-  color: white;
-  font-size: 9pt;
-  border-radius: 100px;
-  padding: 1px 7px;
-  letter-spacing: 0;
-  text-transform: none;
+  padding: 12px;
+  width: 30%;
 }
 
 .players-list {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 5px 10px;
 }
 
 .player {
@@ -143,11 +122,12 @@ h2 {
   border: var(--border);
   border-radius: var(--xs-radius);
   gap: 6px;
+  width: 100%;
   transition: background 0.2s ease, opacity 0.2s ease;
 }
 
 .player.me {
-  background: color-mix(in srgb, var(--blue) 5%, white);
+  background: color-mix(in srgb, var(--blue) 3%, white);
   border-color: color-mix(in srgb, var(--blue) 30%, transparent);
 }
 
@@ -220,7 +200,6 @@ h2 {
 
 .host-badge {
   color: var(--yellow);
-  filter: drop-shadow(0 0 2px #0003);
 }
 
 .offline-badge {

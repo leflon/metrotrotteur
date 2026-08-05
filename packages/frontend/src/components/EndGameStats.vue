@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { calculateStopWPM, formatDuration } from "@/lib/utils";
-import type { GameStats } from "@metroclavier/shared";
+import type { GameStats, GameTrip, MultiplayerRoom } from "@metroclavier/shared";
 import {
     CategoryScale,
     Chart,
@@ -11,8 +11,13 @@ import {
     Tooltip,
 } from "chart.js";
 import { computed, onMounted, toRaw, useTemplateRef } from "vue";
+import MultiRanking from "./multiplayer/MultiRanking.vue";
 
-const props = defineProps<{ stats: GameStats }>();
+const props = defineProps<{
+  stats: GameStats;
+  room?: MultiplayerRoom;
+  trip: GameTrip
+}>();
 const emit = defineEmits<{ playAgain: [] }>();
 
 const canvas = useTemplateRef("chart");
@@ -128,6 +133,10 @@ onMounted(() => {
           </div>
         </div>
         <div class="stats flex column">
+          <div v-if="room">
+            <div class='stat-title'>Classement</div>
+            <multi-ranking :room="room" :stops-count="trip.stops.length" />
+          </div>
           <div class="stat-title">Mots Par Minute (WPM)</div>
           <canvas class="wpm-chart" ref="chart"></canvas>
           <div class="figures flex">
@@ -295,6 +304,7 @@ onMounted(() => {
   width: 40%;
   height: 100%;
   padding: 10px;
+  overflow: auto;
   & .next-cta {
     align-self: flex-end;
     margin: 10px 0;
