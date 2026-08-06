@@ -17,7 +17,7 @@ import { User, Users } from "@lucide/vue";
     </div>
   <footer>
     <p>Créé par <a href='https://github.com/leflon' target='_blank'>Paul Leflon</a></p>
-    <p>Illustrations par <a href='https://www.linkedin.com/in/youjinogsol/' target='_blank'>Youjin Jeong</a></p>
+    <p>Illustrations par <a href='https://www.instagram.com/design.youjin' target='_blank'>Youjin Jeong</a></p>
   </footer>
   </div>
 </template>

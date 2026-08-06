@@ -83,7 +83,7 @@ onMounted(async () => {
         </div>
         <div class="indev-warning">
           Le mode multijoueur est en cours de développement et des bugs peuvent
-          survenir. Merci de nous les rapporter ici. En cas de bug, essayez
+          survenir. Merci de nous les rapporter <a href='mailto:paul@leflon.fr?subject=[Metro Trotteur] Bug - '>ici</a>. En cas de bug, essayez
           de rafraîchir la page.
         </div>
         <div class="rooms-list" :class="{ empty: rooms.length === 0 }">
