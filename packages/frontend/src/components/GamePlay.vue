@@ -121,18 +121,35 @@ const startGame = () => {
   setPossibleTransfers();
 };
 
+let didSendStats = false;
+
 const displayGameStats = () => {
   state.value.status = "postgame";
   state.value.currentStopIndex = -1;
   stats.value.duration = Date.now() - stats.value.gameStart.getTime();
+  if (props.params.gamemode === 'solo' && !didSendStats) {
+    api.post('send-game', { reason: 'Un joueur a terminé une partie.', stats: stats.value, params: props.params });
+    didSendStats = true;
+  }
 };
+
+
+const onBeforeUnload = () => {
+  if (props.params.gamemode === 'solo' && !didSendStats) {
+    api.post('send-game', { reason: 'Un joueur a abandonné une partie.', stats: stats.value, params: props.params });
+    didSendStats = true;
+  }
+}
 
 onMounted(() => {
   loadTrip();
   window.visualViewport?.addEventListener("resize", syncViewport);
+  window.addEventListener('beforeunload', onBeforeUnload)
 });
 onUnmounted(() => {
   window.visualViewport?.removeEventListener("resize", syncViewport);
+  window.removeEventListener('beforeunload', onBeforeUnload);
+  onBeforeUnload();
 });
 
 const setPossibleTransfers = () => {
