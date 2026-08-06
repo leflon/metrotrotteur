@@ -51,11 +51,12 @@ const props = defineProps<{
   params: GameParams;
   loading?: boolean;
   multiplayerRoom?: MultiplayerRoom;
+  startAt?: number;
 }>();
 
 const state = ref<GameState>({
   trip: PLACEHOLDER_TRIP,
-  currentStopIndex: 0,
+  currentStopIndex: props.startAt ?? 0,
   possibleTransfers: [] as GameTransfer[],
   currentStopStart: new Date(),
   status: "pregame",
@@ -256,6 +257,7 @@ watch(
       v-if="state.status === 'pregame'"
       :loading="props.loading || state.trip.id === 'loading'"
       :tripId="props.params.trip"
+      :skipCount="props.startAt !== undefined"
       @start="startGame"
     ></pre-game-screen>
     <div
@@ -265,7 +267,6 @@ watch(
     >
       <exit-button @click="emit('exitInGame')"></exit-button>
       <div v-if="multiplayerRoom" class="multi-overlay">
-        <div v-if="multiplayerRoom.currentGameData.willEndAt">WILL END!!</div>
         <MultiplayerGameData :room="multiplayerRoom" :trip="state.trip" />
       </div>
       <div class="game-center-overlay">

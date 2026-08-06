@@ -9,19 +9,18 @@ import { RoomConnection } from "@/lib/RoomConnection";
 import { createSocket } from "@/lib/socket";
 import { Check, Pencil, Settings } from "@lucide/vue";
 import {
-  type MultiplayerRoom,
-  type Player,
-  DEFAULT_MULTIPLAYER_ROOM,
+    type MultiplayerRoom,
+    type Player,
+    DEFAULT_MULTIPLAYER_ROOM,
 } from "@metroclavier/shared";
 import {
-  computed,
-  onBeforeUnmount,
-  onMounted,
-  onUnmounted,
-  ref,
-  watch,
+    computed,
+    onMounted,
+    onUnmounted,
+    ref,
+    watch
 } from "vue";
-import { onBeforeRouteUpdate, useRoute, useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 const router = useRouter();
 const route = useRoute();
@@ -44,8 +43,8 @@ const invalidPassword = ref(false);
 // Room state
 const isParamsOpen = ref(false);
 const isEditingName = ref(false);
-const editedName = ref('');
-              
+const editedName = ref("");
+
 const isHost = computed(() => me.value.id === room.value.hostId);
 const canLaunchGame = computed(
   () => me.value.id === room.value.hostId && room.value.status !== "playing",
@@ -60,6 +59,7 @@ const bannerText = computed(() =>
 let updateWasDistant = false;
 
 // Game state
+const startAtStopIndex = ref<number | undefined>();
 const isInGame = ref(false);
 const isGameLoading = ref(false);
 
@@ -85,23 +85,21 @@ function registerEvents(c: RoomConnection) {
 }
 
 const onNameKeyDown = (e: KeyboardEvent) => {
-  if (e.key === 'Escape')
-    isEditingName.value = false;
-  else if (e.key === 'Enter')
-    editName();
+  if (e.key === "Escape") isEditingName.value = false;
+  else if (e.key === "Enter") editName();
 };
 
 const onNameEditStart = () => {
   isEditingName.value = true;
   editedName.value = room.value.name;
-}
+};
 
 const editName = () => {
   const name = editedName.value.trim();
   if (!name) return;
   isEditingName.value = false;
   connection.updateRoom({ name });
-}
+};
 
 const onReady = () => {
   connection.emitReady();
@@ -149,11 +147,15 @@ onMounted(async () => {
   } else {
     room.value = res.room;
     registerEvents(connection);
+    if (res.room.status === 'playing') {
+      // Rejoined during an ongoing game, should allow to directly hop back in
+      startAtStopIndex.value = res.room.currentGameData.timings[me.value.id]?.length ?? 0;
+    }
   }
 });
 
 onUnmounted(() => {
-  window.removeEventListener('beforeunload', onBeforeUnload);
+  window.removeEventListener("beforeunload", onBeforeUnload);
   connection?.kill();
 });
 
@@ -163,6 +165,9 @@ watch(
     if (newVal === "playing" && oldVal !== "playing") {
       isGameLoading.value = true;
       isInGame.value = true;
+    }
+    if (newVal === 'idle') {
+      startAtStopIndex.value = undefined;
     }
   },
   { deep: true },
@@ -181,76 +186,79 @@ watch(
 
 <template>
   <div class="hf">
-    <div class="lobby flex column hf" v-if="!isInGame">
-      <app-header @exit="leaveRoom" />
-      <Transition name="fade">
-        <div class="params-container flex center" v-if="isParamsOpen">
-          <game-params-menu
-            v-model="room.gameParams"
-            :closable="true"
-            @close="isParamsOpen = false"
-          />
-        </div>
-      </Transition>
-      <div class="room-view window flex column">
-        <div class="title flex alc">
-          <h1 class="flex alc">
-            <template v-if="!isEditingName">
-            {{ room.name }}
-            <button class="discreet" v-if="isHost" @click="onNameEditStart">
-              <Pencil color="white" :size="16" />
+    <Transition name="fade" mode="out-in">
+      <div class="lobby flex column hf" v-if="!isInGame">
+        <app-header @exit="leaveRoom" />
+        <Transition name="fade">
+          <div class="params-container flex center" v-if="isParamsOpen">
+            <game-params-menu
+              v-model="room.gameParams"
+              :closable="true"
+              @close="isParamsOpen = false"
+            />
+          </div>
+        </Transition>
+        <div class="room-view window flex column">
+          <div class="title flex alc">
+            <h1 class="flex alc">
+              <template v-if="!isEditingName">
+                {{ room.name }}
+                <button class="discreet" v-if="isHost" @click="onNameEditStart">
+                  <Pencil color="white" :size="16" />
+                </button>
+              </template>
+              <template v-else>
+                <input @keydown="onNameKeyDown" v-model="editedName" />
+                <button class="discreet" @click="editName">
+                  <Check color="white" :size="16" />
+                </button>
+              </template>
+            </h1>
+            <button v-if="isHost" @click="isParamsOpen = true">
+              <settings />
+              Paramètres
             </button>
-            </template>
-            <template v-else>
-              <input @keydown="onNameKeyDown" v-model="editedName" />
-              <button class="discreet" @click="editName">
-                <Check color="white" :size="16" />
-              </button>
-            </template>
-          </h1>
-          <button v-if="isHost" @click="isParamsOpen = true">
-            <settings />
-            Paramètres
-          </button>
+          </div>
+          <div class="room-view-panes flex f1">
+            <social-pane
+              class="pane"
+              :players="room.players"
+              :maxPlayers="room.maxPlayers"
+              :hostId="room.hostId"
+              :meId="me.id"
+              @rename="(name) => connection.rename(name)"
+              @kick="(id) => connection.kick(id)"
+              @host-change="(id) => connection.makeHost(id)"
+            />
+            <chat-pane
+              class="pane f1"
+              :messages="room.chat"
+              :players="room.players"
+              @send="(msg) => connection.sendChat(msg)"
+            />
+          </div>
         </div>
-        <div class="room-view-panes flex f1">
-          <social-pane
-            class="pane"
-            :players="room.players"
-            :maxPlayers="room.maxPlayers"
-            :hostId="room.hostId"
-            :meId="me.id"
-            @rename="(name) => connection.rename(name)"
-            @kick="(id) => connection.kick(id)"
-            @host-change="(id) => connection.makeHost(id)"
-          />
-          <chat-pane
-            class="pane f1"
-            :messages="room.chat"
-            :players="room.players"
-            @send="(msg) => connection.sendChat(msg)"
-          />
-        </div>
+        <game-start-banner
+          :params="room.gameParams"
+          :readonly="!canLaunchGame"
+          :text="bannerText"
+          :displayDetails="true"
+          @play="connection.startGame()"
+        ></game-start-banner>
       </div>
-      <game-start-banner
-        :params="room.gameParams"
-        :readonly="!canLaunchGame"
-        :text="bannerText"
-        :displayDetails="true"
-        @play="connection.startGame()"
-      ></game-start-banner>
-    </div>
-    <div class="hf game" v-else>
-      <game-play
-        :params="room.gameParams"
-        :multiplayerRoom="room"
-        :loading="isGameLoading"
-        @ready="onReady"
-        @correct="onCorrect"
-        @end="isInGame = false"
-        @exitInGame="onExit"
-      ></game-play>
-    </div>
+      <div class="hf game" v-else>
+        <game-play
+          :params="room.gameParams"
+          :multiplayerRoom="room"
+          :loading="isGameLoading"
+          :startAt="startAtStopIndex"
+          @ready="onReady"
+          @correct="onCorrect"
+          @end="isInGame = false"
+          @exitInGame="onExit"
+        ></game-play>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -293,7 +301,7 @@ h1 {
 .room-view-panes {
   overflow: hidden;
 
-  @media screen  and (max-width: 600px) {
+  @media screen and (max-width: 600px) {
     flex-direction: column;
   }
 }

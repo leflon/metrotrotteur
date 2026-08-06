@@ -8,6 +8,7 @@ import { computed, ref, useTemplateRef, watch } from "vue";
 const props = defineProps<{
   loading: boolean;
   tripId: string;
+  skipCount?: boolean;
 }>();
 const funFact = funFacts[Math.floor(Math.random() * funFacts.length)];
 
@@ -37,6 +38,9 @@ const color = computed(() => info.value.route?.color);
 let interval: number;
 
 async function startSequence() {
+  if (props.skipCount)
+    return emit('start');
+  
   showCountdown.value = true;
   await wait(500);
   let i = 3;

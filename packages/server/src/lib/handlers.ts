@@ -100,7 +100,6 @@ export default function registerMultiplayerHandlers(
       });
       callback({ success: true, room });
     } catch (error: unknown) {
-      console.error(error);
       callback({ success: false, error: (<Error>error).message });
     }
   });
@@ -163,7 +162,7 @@ export default function registerMultiplayerHandlers(
   socket.on("make-host", (playerId: string) =>
     withContext(socket, (room, player) => {
       if (room.hostId !== player.id) return;
-      room.hostId = playerId;
+      room.update({ hostId: playerId });
       io.to(room.id).emit("update-room", { hostId: playerId });
     })(),
   );
@@ -205,7 +204,7 @@ export default function registerMultiplayerHandlers(
   socket.on("chat", (content: string) =>
     withContext(socket, (room, player) => {
       const id = crypto.randomUUID();
-      room.chat.push({ author: player.id, content, createdAt: new Date().toISOString(), id });
+      room.sendChat({ author: player.id, content, createdAt: new Date().toISOString(), id });
       io.to(room.id).emit("update-room", { chat: room.chat });
     })(),
   );

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computeRanking } from "@/lib/utils";
+import { computeRanking, formatDuration } from "@/lib/utils";
 import type { GameTrip, MultiplayerRoom } from "@metroclavier/shared";
-import { computed } from "vue";
+import { computed, onUnmounted, ref, watch } from "vue";
 
 const props = defineProps<{
   room: MultiplayerRoom;
@@ -9,10 +9,40 @@ const props = defineProps<{
 }>();
 
 const rankingPerUser = computed(() => computeRanking(props.room));
+const formattedEndClock = ref("");
+
+let interval: number | null = null;
+
+function updateClock(willEndAt: Date) {
+  const duration = willEndAt.getTime() - Date.now();
+  formattedEndClock.value = formatDuration(duration);
+}
+watch(
+  () => props.room.currentGameData.willEndAt,
+  (val, oldVal) => {
+    if (!val || val === oldVal) return;
+
+    const date = new Date(val);
+    updateClock(date)
+    let interval = setInterval(() => updateClock(date), 1000);
+  },
+  { immediate: true },
+);
+
+onUnmounted(() => {
+  if (interval)
+    clearInterval(interval);
+});
 </script>
 
 <template>
   <div class="multi-data">
+    <Transition name='height'>
+      <div class="will-end" v-if="room.currentGameData.willEndAt">
+        <span>Fin dans</span>
+        <span class="countdown">{{ formattedEndClock }}</span>
+      </div>
+    </Transition>
     <div class="ranking" :style="{ '--players': room.players.length }">
       <div
         class="ranking-row flex alc"
@@ -30,7 +60,9 @@ const rankingPerUser = computed(() => computeRanking(props.room));
               class="progress-bar-inner"
               :style="{
                 width:
-                  (rankingPerUser[p.id]!.timings.length / trip.stops.length) * 100 + '%',
+                  (rankingPerUser[p.id]!.timings.length / trip.stops.length) *
+                    100 +
+                  '%',
               }"
             ></div>
           </div>
@@ -41,19 +73,44 @@ const rankingPerUser = computed(() => computeRanking(props.room));
 </template>
 
 <style scoped>
-.multi-data {
+.will-end {
+  background: red;
+  color: white;
+  padding: 0px 10px;
+  border-radius: var(--xs-radius);
+  margin-bottom: 20px;
+  font: bold 18pt "Parisine";
+  text-align: center;
+  animation: red-bg 3s linear infinite;
+  height: calc-size(fit-content, size);
+  overflow: hidden;
+  transition: height 0.2s ease;
+  & .countdown {
+    margin-left: 5px;
+  }
+}
+
+.height-enter-from,
+.height-leave-to {
+  height: 0;
+}
+
+@keyframes red-bg {
+  50% {
+    background: #b00;
+  }
+}
+
+.ranking {
   --row-height: 40px;
   width: 200px;
-  background: var(--white);
-  border: var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-.ranking {
   height: calc(var(--players) * var(--row-height));
+  border-radius: var(--radius);
   max-height: calc(5 * var(--row-height));
   overflow: hidden;
-  transition: height .3s ease;
+  background: var(--white);
+  border: var(--border);
+  transition: height 0.3s ease;
 }
 .ranking-row {
   position: absolute;
