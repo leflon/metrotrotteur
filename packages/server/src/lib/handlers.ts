@@ -36,7 +36,6 @@ export default function registerMultiplayerHandlers(
       if (!room.isActiveSocket(player.id, socket.id)) {
         return;
       }
-      console.log("SOCKET DISCONNECT", player.id);
       room.playerDisconnected(player.id);
       io.to(room.id).emit("update-room", {
         players: room.players,
@@ -47,6 +46,7 @@ export default function registerMultiplayerHandlers(
 
   socket.on("join-room", ({ roomId, password }, callback) => {
     const room = MultiplayerRoom.ROOMS[roomId];
+
 
     if (!room) {
       callback({ success: false, error: "not-found" });
@@ -61,18 +61,21 @@ export default function registerMultiplayerHandlers(
       let userData = room.players.find((p) => p.id === uid);
       if (userData) {
         // Reconnecting
-        console.log("known dude,", userData);
-        if (userData.isConnected)
-          return callback({ success: false, error: "already-connected" });
+        if (userData.isConnected) {
+          const oldSocketId = room.getActiveSocket(userData.id);
+          if (oldSocketId && oldSocketId !== socket.id) {
+            io.to(oldSocketId).emit("socket-replaced");
+          }
+          room.setActiveSocket(userData.id, socket.id);
+        }
         userData.isConnected = true;
         room.playerReconnected(userData.id);
       } else {
-        console.log("new dude,", socket.handshake.auth.token);
         // New player
         const id = randomPlayerId();
         userData = {
           id,
-          name: id,
+          name: socket.handshake.auth.name?.slice(0, 32) ?? id,
           score: 0,
           isConnected: true,
         };
@@ -118,9 +121,7 @@ export default function registerMultiplayerHandlers(
   socket.on(
     "ready",
     withContext(socket, (room, player) => {
-      console.log(player.id, "READY");
       const allReady = room.playerReady(player.id);
-      console.log(allReady, "ALL READDDY!!!");
       if (allReady) io.to(room.id).emit("all-ready");
     }),
   );
@@ -128,9 +129,8 @@ export default function registerMultiplayerHandlers(
   socket.on("update-room", (data: Partial<MultiplayerRoomData>) =>
     withContext(socket, (room, player) => {
       if (room.hostId !== player.id) return;
-      console.log("UPDATE ROOM", room.id);
       room.update(data);
-      socket.to(room.id).emit("update-room", data);
+      io.to(room.id).emit("update-room", data);
     })(),
   );
 

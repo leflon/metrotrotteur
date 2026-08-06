@@ -5,7 +5,10 @@ export function createSocket() {
   localStorage.setItem('mtst', token);
 
   const socket = io(import.meta.env.VITE_PUBLIC_API_URL, {
-    auth: { token },
+    auth: {
+      token,
+      name: localStorage.getItem('mtpu')
+    },
   });
 
   return socket;

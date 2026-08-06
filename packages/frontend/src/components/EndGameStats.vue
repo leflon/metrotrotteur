@@ -24,9 +24,11 @@ const canvas = useTemplateRef("chart");
 
 const headsign = computed(
   () =>
-    props.stats.visitedStops[0]?.stop.name +
+    props.stats.visitedStops.length > 0 ?
+    (props.stats.visitedStops[0]?.stop.name +
     " ➜ " +
-    props.stats.visitedStops.at(-1)?.stop.name,
+      props.stats.visitedStops.at(-1)?.stop.name)
+    : "Nulle part ➜ Rien"
 );
 
 const formattedClock = computed(() => {
@@ -37,17 +39,16 @@ const formattedClock = computed(() => {
 const wpmValues = computed(() => props.stats.visitedStops.map(calculateStopWPM));
 const wpmLabels = computed(() => props.stats.visitedStops.map(s => s.stop.name));
 
-const maxWPM = computed(() => Math.max(...wpmValues.value));
+const maxWPM = computed(() => wpmValues.value.length > 0 ? Math.max(...wpmValues.value) : 0);
 const avgWPM = computed(() =>
   Math.floor(
     wpmValues.value.reduce((a, b) => a + b, 0) / wpmValues.value.length,
-  ),
+  ) || 0
 );
 
 const isTransfer = (index: number) => {
   const current = props.stats.visitedStops[index];
   const previous = props.stats.visitedStops[index - 1];
-  console.log(current, previous);
   if (!current || !previous) return false;
   return current.route.id !== previous.route.id;
 };

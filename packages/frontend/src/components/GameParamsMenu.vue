@@ -79,7 +79,7 @@ watch(() => params.value.trip, (trip) => {
 </script>
 
 <template>
-  <div class="game-params-menu">
+  <div class="game-params-menu window">
     <button v-if="closable" class='close discreet' @click="emit('close')"><x /></button>
     <h1>Mode <span class='mode'>{{ params.gamemode }}</span></h1>
     <div class="menu-main">
@@ -124,19 +124,8 @@ watch(() => params.value.trip, (trip) => {
 h1 span { text-transform: capitalize; }
 
 .game-params-menu {
-  border: var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  width: 80%;
   display: flex;
   flex-direction: column;
-  background: white;
-  overflow: hidden;
-
-  @media screen and (max-width: 840px) {
-    width: 99%;
-    overflow: auto;
-  }
 }
 
 .close {

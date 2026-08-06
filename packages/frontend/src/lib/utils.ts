@@ -85,6 +85,7 @@ export function computeRanking(room: MultiplayerRoom): Record<string, {
   timings: number[];
 }> {
   return Object.entries(room.currentGameData.timings)
+    .filter(([id, _]) => room.players.some((p) => p.id === id))
     .sort((a, b) => {
       if (a[1].length === b[1].length) {
           const sumA = a[1].reduce((acc, curr) => acc + curr, 0);

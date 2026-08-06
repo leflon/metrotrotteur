@@ -56,29 +56,34 @@ export class RoomConnection extends EventTarget {
     socket.on("chat", (message: ChatMessage) => {
       this.dispatchEvent(new CustomEvent("chat", { detail: message }));
     });
+
+    socket.on("socket-replaced", () => {
+      this.dispatchEvent(new Event("socket-replaced"));
+    });
+  }
+
+  kill() {
+    this.socket.disconnect();
+    this._connected = false;
   }
 
   async joinRoom(
     roomId: string,
     password?: string,
   ): Promise<ConnectionAttemptResponse> {
-    console.log("join attempted", roomId);
     return new Promise((resolve) => {
-      console.log("emitting join-room", { roomId, password });
       this.socket.emit("join-room", { roomId, password }, resolve);
     });
   }
 
   async leaveRoom() {
     this.socket.emit("leave-room");
-    console.log('DISCONNECT');
     this.socket.disconnect();
-    console.log('DISCONNECTED');
     this._connected = false;
   }
 
-  async updateRoom(room: Partial<MultiplayerRoom>) {
-    this.socket.emit("update-room", room);
+  async updateRoom(data: Partial<MultiplayerRoom>) {
+    this.socket.emit("update-room", data);
   }
 
   async startGame() {
@@ -94,6 +99,8 @@ export class RoomConnection extends EventTarget {
   }
 
   rename(name: string) {
+    name = name.slice(0, 32);
+    localStorage.setItem('mtpu', name);
     this.socket.emit("rename", name);
   }
 

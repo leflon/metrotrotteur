@@ -200,9 +200,14 @@ button.toggle {
   background: var(--white);
   border: var(--border);
   border-radius: var(--radius);
-  width: 800px;
+  width: 1000px;
   margin: 0 auto;
   max-width: 80%;
+  overflow: auto;
+  @media screen and (max-width: 840px) {
+    width: 99%;
+    max-width: unset;
+  }
 }
 
 .cloud {

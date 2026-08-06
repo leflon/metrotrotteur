@@ -124,4 +124,27 @@ const emit = defineEmits<{play: []}>();
     color 0.5s ease;
   white-space: pre;
 }
+
+@media screen and (max-width: 600px) {
+  .game-start:has(.details) {
+    .stop-arrow {
+      display: none;
+    }
+
+    .big {
+      font-size: 12pt;
+      margin-left: auto;
+      margin-right: 10px;
+    }
+
+    .details {
+      margin-left: 10px;
+      flex-wrap: wrap;
+    }
+    .details .important {
+      font-size: 8pt;
+      
+    }
+  }
+}
 </style>

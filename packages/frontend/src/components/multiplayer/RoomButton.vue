@@ -71,6 +71,8 @@ const join = () => {
   padding: 10px 0;
   padding-right: 10px;
   transition: 0.3s ease;
+  flex-wrap: wrap;
+  overflow: hidden;
   &:not(.joinable) {
     opacity: .5;
   }
@@ -95,10 +97,14 @@ const join = () => {
 
 .room-name {
   font: bold 14pt "Parisine";
+  @media screen  and (max-width: 600px) {
+    font-size: 10pt;
+  }
 }
 
 .room-infos {
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .room-info {
@@ -107,6 +113,7 @@ const join = () => {
   gap: 5px;
   font-size: 10pt;
   color: #555;
+  flex-shrink: 0;
 }
 
 .big {

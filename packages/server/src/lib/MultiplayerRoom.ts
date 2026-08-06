@@ -19,7 +19,7 @@ function randomStopName() {
   return arr[n]!.stops[m]!.name;
 }
 
-const DISCONNECT_GRACE_PERIOD = 3_000;
+const DISCONNECT_GRACE_PERIOD = 20_000;
 
 export default class MultiplayerRoom
   extends EventTarget
@@ -58,6 +58,10 @@ export default class MultiplayerRoom
 
   setActiveSocket(playerId: string, socketId: string): void {
     this.activeSockets.set(playerId, socketId);
+  }
+
+  getActiveSocket(playerId: string): string | undefined {
+    return this.activeSockets.get(playerId);
   }
 
   isActiveSocket(playerId: string, socketId: string): boolean {

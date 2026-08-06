@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { Check, Crown, Pencil, UserMinus, ShieldCheck } from '@lucide/vue';
-import type { MultiplayerRoom } from '@metroclavier/shared';
-import { ref } from 'vue';
+import { Check, Crown, Pencil, UserMinus, ShieldCheck } from "@lucide/vue";
+import type { MultiplayerRoom } from "@metroclavier/shared";
+import { ref } from "vue";
 
 const props = defineProps<{
   meId: string;
-  players: MultiplayerRoom['players'];
+  players: MultiplayerRoom["players"];
+  maxPlayers: number;
   hostId: string;
 }>();
 
@@ -16,83 +17,102 @@ const emit = defineEmits<{
 }>();
 
 const isEditingName = ref(false);
-const newName = ref(props.players.find(p => p.id === props.meId)?.name ?? '');
+const newName = ref(props.players.find((p) => p.id === props.meId)?.name ?? "");
 
 const onRename = () => {
   if (newName.value.trim()) {
-    emit('rename', newName.value.trim());
+    emit("rename", newName.value.trim());
   }
   isEditingName.value = false;
 };
 
 const onRenameKeydown = (e: KeyboardEvent) => {
-  if (e.key === 'Enter') onRename();
-  if (e.key === 'Escape') isEditingName.value = false;
+  if (e.key === "Enter") onRename();
+  if (e.key === "Escape") isEditingName.value = false;
 };
 
 const startEditing = () => {
-  newName.value = props.players.find(p => p.id === props.meId)?.name ?? '';
+  newName.value = props.players.find((p) => p.id === props.meId)?.name ?? "";
   isEditingName.value = true;
 };
 </script>
 
 <template>
-  <div class='social-pane'>
-    <h2>Joueurs</h2>
-    <div class='players-list'>
+  <div class="social-pane">
+    <h2 class="flex alc">
+      Joueurs
+      <div class="player-count">{{ players.length }} / {{ maxPlayers }}</div>
+    </h2>
+    <div class="players-list">
       <div
-        class='player flex alc'
+        class="player flex alc"
         v-for="player in players"
         :key="player.id"
-        :class="{ me: player.id === meId, host: player.id === hostId, disconnected: !player.isConnected }"
+        :class="{
+          me: player.id === meId,
+          host: player.id === hostId,
+          disconnected: !player.isConnected,
+        }"
       >
-        <div class='player-identity flex alc f1'>
-          <div v-if="player.id === meId && isEditingName" class='name-edit flex alc'>
+        <div class="player-identity flex alc f1">
+          <div
+            v-if="player.id === meId && isEditingName"
+            class="name-edit flex alc"
+          >
             <input
-              v-model='newName'
-              class='name-input'
-              @keydown='onRenameKeydown'
+              v-model="newName"
+              class="name-input"
+              @keydown="onRenameKeydown"
               autofocus
-              maxlength="24"
+              maxlength="32"
             />
             <button class="discreet confirm-btn" @click="onRename">
               <Check :size="16" />
             </button>
           </div>
-          <div class='name flex alc' v-else>
-            <span class='player-name'>{{ player.name }}</span>
+          <div class="name flex alc" v-else>
+            <span class="player-name">{{ player.name }}</span>
             <button
               v-if="player.id === meId"
               @click="startEditing"
-              class='discreet edit-btn'
+              class="discreet edit-btn"
               title="Modifier mon pseudo"
             >
               <Pencil :size="14" />
             </button>
           </div>
 
-          <!-- Badges -->
-          <div class='badges flex alc'>
-            <div class='badge host-badge' v-if="player.id === hostId" title="Hôte">
+          <div class="badges flex alc">
+            <div
+              class="badge host-badge"
+              v-if="player.id === hostId"
+              title="Hôte"
+            >
               <Crown :size="16" />
             </div>
-            <div class='badge offline-badge' v-if="!player.isConnected" title="Hors ligne">
+            <div
+              class="badge offline-badge"
+              v-if="!player.isConnected"
+              title="Hors ligne"
+            >
               ●
             </div>
           </div>
         </div>
 
-        <!-- Host actions -->
-        <div class='actions flex alc' v-if="meId === hostId && player.id !== meId">
+        <div
+          class="actions flex alc"
+          v-if="meId === hostId && player.id !== meId"
+        >
           <button
-            class='action-btn host-btn discreet'
+            class="action-btn host-btn discreet"
             @click="emit('hostChange', player.id)"
             title="Rendre hôte"
           >
             <Crown :size="16" />
           </button>
           <button
-            class='action-btn kick-btn discreet'
+            class="action-btn kick-btn discreet"
             @click="emit('kick', player.id)"
             title="Exclure"
           >
@@ -108,6 +128,7 @@ const startEditing = () => {
 .social-pane {
   padding: 12px;
   width: 30%;
+  min-width: 200px;
 }
 
 .players-list {
@@ -123,7 +144,9 @@ const startEditing = () => {
   border-radius: var(--xs-radius);
   gap: 6px;
   width: 100%;
-  transition: background 0.2s ease, opacity 0.2s ease;
+  transition:
+    background 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .player.me {
@@ -216,7 +239,9 @@ const startEditing = () => {
 .action-btn {
   padding: 4px;
   border-radius: var(--xs-radius);
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .host-btn {

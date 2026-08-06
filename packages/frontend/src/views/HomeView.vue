@@ -4,7 +4,7 @@ import { User, Users } from '@lucide/vue';
 
 <template>
 <div class='main-menu flex column center'>
-  <h1 class='logo'>ClaviMétro</h1>
+  <h1 class='logo'>MétroTrotteur</h1>
   <div class='buttons flex column center'>
     <router-link to='/solo' class='home-btn solo'>
       <User />

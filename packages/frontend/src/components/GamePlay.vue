@@ -230,7 +230,6 @@ watch(
 watch(
   () => props.multiplayerRoom?.status,
   (status, oldStatus) => {
-    console.log(status, oldStatus);
     if (status === oldStatus) return;
     if (status === 'idle') {
       state.value.status = 'postgame';
@@ -310,8 +309,9 @@ watch(
 }
 .multi-overlay {
   position: absolute;
-  top: 10px;
+  top: 50%;
   right: 10px;
+  transform: translateY(-50%);
 }
 .game-center-overlay {
   position: absolute;

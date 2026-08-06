@@ -7,13 +7,20 @@ import AppHeader from "@/components/ui/AppHeader.vue";
 import GameStartBanner from "@/components/ui/GameStartBanner.vue";
 import { RoomConnection } from "@/lib/RoomConnection";
 import { createSocket } from "@/lib/socket";
-import { Settings } from "@lucide/vue";
+import { Check, Pencil, Settings } from "@lucide/vue";
 import {
-    type MultiplayerRoom,
-    type Player,
-    DEFAULT_MULTIPLAYER_ROOM,
+  type MultiplayerRoom,
+  type Player,
+  DEFAULT_MULTIPLAYER_ROOM,
 } from "@metroclavier/shared";
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import {
+  computed,
+  onBeforeUnmount,
+  onMounted,
+  onUnmounted,
+  ref,
+  watch,
+} from "vue";
 import { onBeforeRouteUpdate, useRoute, useRouter } from "vue-router";
 
 const router = useRouter();
@@ -36,6 +43,9 @@ const invalidPassword = ref(false);
 
 // Room state
 const isParamsOpen = ref(false);
+const isEditingName = ref(false);
+const editedName = ref('');
+              
 const isHost = computed(() => me.value.id === room.value.hostId);
 const canLaunchGame = computed(
   () => me.value.id === room.value.hostId && room.value.status !== "playing",
@@ -68,6 +78,29 @@ function registerEvents(c: RoomConnection) {
   c.addEventListener("kicked", () => {
     router.push("/multi?reject_reason=kicked");
   });
+
+  c.addEventListener("socket-replaced", () => {
+    router.push("/multi?reject_reason=connection-replaced");
+  });
+}
+
+const onNameKeyDown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape')
+    isEditingName.value = false;
+  else if (e.key === 'Enter')
+    editName();
+};
+
+const onNameEditStart = () => {
+  isEditingName.value = true;
+  editedName.value = room.value.name;
+}
+
+const editName = () => {
+  const name = editedName.value.trim();
+  if (!name) return;
+  isEditingName.value = false;
+  connection.updateRoom({ name });
 }
 
 const onReady = () => {
@@ -79,7 +112,7 @@ const onCorrect = (duration: number) => {
 };
 
 const onBeforeUnload = (e: BeforeUnloadEvent) => {
-  e.preventDefault();
+  connection?.kill();
 };
 
 const leaveRoom = () => {
@@ -98,7 +131,8 @@ const onExit = () => {
 };
 
 onMounted(async () => {
-  //window.addEventListener("beforeunload", onBeforeUnload);
+  window.addEventListener("beforeunload", onBeforeUnload);
+  if (connection) return;
   const roomId = route.params["id"]! as string;
   const socket = createSocket();
   socket.once("player-data", (p) => (me.value = p));
@@ -116,6 +150,11 @@ onMounted(async () => {
     room.value = res.room;
     registerEvents(connection);
   }
+});
+
+onUnmounted(() => {
+  window.removeEventListener('beforeunload', onBeforeUnload);
+  connection?.kill();
 });
 
 watch(
@@ -141,7 +180,7 @@ watch(
 </script>
 
 <template>
-  <div class="f1">
+  <div class="hf">
     <div class="lobby flex column hf" v-if="!isInGame">
       <app-header @exit="leaveRoom" />
       <Transition name="fade">
@@ -155,7 +194,20 @@ watch(
       </Transition>
       <div class="room-view window flex column">
         <div class="title flex alc">
-          <h1>{{ room.name }}</h1>
+          <h1 class="flex alc">
+            <template v-if="!isEditingName">
+            {{ room.name }}
+            <button class="discreet" v-if="isHost" @click="onNameEditStart">
+              <Pencil color="white" :size="16" />
+            </button>
+            </template>
+            <template v-else>
+              <input @keydown="onNameKeyDown" v-model="editedName" />
+              <button class="discreet" @click="editName">
+                <Check color="white" :size="16" />
+              </button>
+            </template>
+          </h1>
           <button v-if="isHost" @click="isParamsOpen = true">
             <settings />
             Paramètres
@@ -165,13 +217,19 @@ watch(
           <social-pane
             class="pane"
             :players="room.players"
+            :maxPlayers="room.maxPlayers"
             :hostId="room.hostId"
             :meId="me.id"
             @rename="(name) => connection.rename(name)"
             @kick="(id) => connection.kick(id)"
             @host-change="(id) => connection.makeHost(id)"
           />
-          <chat-pane class="pane" :messages="room.chat" :players="room.players" @send="msg => connection.sendChat(msg)" />
+          <chat-pane
+            class="pane f1"
+            :messages="room.chat"
+            :players="room.players"
+            @send="(msg) => connection.sendChat(msg)"
+          />
         </div>
       </div>
       <game-start-banner
@@ -197,9 +255,17 @@ watch(
 </template>
 
 <style scoped>
+h1 {
+  --color: white;
+  gap: 5px;
+}
 .pane {
   height: 100%;
   overflow: hidden;
+  @media screen and (max-width: 600px) {
+    height: auto;
+    overflow: hidden;
+  }
 }
 .params-container {
   z-index: 9999999;
@@ -217,6 +283,7 @@ watch(
 .lobby {
   justify-content: space-between;
   padding-bottom: 20px;
+  gap: 10px;
 }
 
 .room-view {
@@ -224,6 +291,10 @@ watch(
   overflow: hidden;
 }
 .room-view-panes {
-overflow: hidden;
+  overflow: hidden;
+
+  @media screen  and (max-width: 600px) {
+    flex-direction: column;
+  }
 }
 </style>
