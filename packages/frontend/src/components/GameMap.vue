@@ -10,7 +10,7 @@ import type { GameTrip } from "@metroclavier/shared";
 import { Map as MapLibre, setWorkerUrl } from "maplibre-gl";
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import "maplibre-gl/dist/maplibre-gl.css";
-import { onMounted, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 
 setWorkerUrl(workerUrl);
 
@@ -24,6 +24,8 @@ const props = defineProps<{
 }>();
 
 let map: MapLibre;
+let isCameraMoving = ref(false);
+let trainAngle = ref(props.angle);
 
 let resolveMapReady: () => void;
 const mapReady = new Promise<void>((resolve) => {
@@ -67,8 +69,28 @@ onMounted(async () => {
         "circle-stroke-width": STOP_CIRCLE_STROKE_WIDTH_EXPRESSION,
       },
     });
+
+    map.on('movestart', () => {
+      isCameraMoving.value = true;
+    });
+    map.on('moveend', () => {
+      isCameraMoving.value = false;
+      trainAngle.value = props.angle;
+      console.log('update by event');
+    });
+    
     resolveMapReady();
   });
+});
+
+watch(() => props.angle, (angle) => {
+  setTimeout(() => {
+    if (isCameraMoving.value)
+      // Will be updated on move end
+      return console.log('update by event');
+    trainAngle.value = angle;
+    console.log('updated direct')
+  }, 1);
 });
 
 watch(
@@ -91,9 +113,15 @@ watch(
 );
 
 watch(
-  () => props.focusedStopIndex,
-  async (index) => {
+  () => [props.focusedStopIndex, props.trip],
+  async (newValues, oldValues) => {
     await mapLoaded();
+
+    const index = newValues[0] as number;
+    const newTripId = (newValues[1] as GameTrip).id
+    const oldTripId = (oldValues?.at(1) as GameTrip)?.id
+
+    if (oldTripId && newTripId !== oldTripId) return; // Don't move cam if it's just a trip change rather than index
 
     const trip = props.trip;
 
@@ -130,6 +158,9 @@ watch(
 <template>
   <div class='map-container'>
     <div id="game-map"></div>
+    <div class='cute-train'>
+      <img src="/train.svg" :style='{transform: `rotate(${trainAngle + 90}deg)`}' />
+    </div>
   </div>
 </template>
 
@@ -145,7 +176,9 @@ watch(
   left: 50%;
   transform: translate(-50%, -50%);
   & img {
-    transition: transform .3s ease 0.8s;
+    transition: transform .3s ease;
+    width: 64px;
+    height: 64px;
   }
 }
 
